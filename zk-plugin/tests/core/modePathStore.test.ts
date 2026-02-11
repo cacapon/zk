@@ -1,3 +1,4 @@
+import { describe, test, expect, beforeEach } from 'vitest';
 import { Mode } from "../../src/core/mode";
 import { ModePathStore } from "../../src/core/modePathStore";
 
