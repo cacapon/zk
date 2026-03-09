@@ -1,5 +1,5 @@
 pre-commit:
   commands:
     test:
-      root: zk
+      root: zk-plugin
       run: npm test
