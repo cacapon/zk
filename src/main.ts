@@ -3,6 +3,7 @@ import { ZkSettings, DEFAULT_SETTINGS, ZkSettingTab } from "./settings";
 import { ModePathStore } from "./core/modePathStore";
 import { selectModeCommand } from "./commands/selectMode";
 import { coreModeCommand } from "./commands/coreMode";
+import { updateModeStatusBar } from "./ui/statusBar";
 
 export default class ZkPlugin extends Plugin {
   settings!: ZkSettings;
@@ -15,6 +16,11 @@ export default class ZkPlugin extends Plugin {
       Core: this.settings.coreRootPath,
       Ref:  this.settings.refRootPath,
       Temp: this.settings.tempRootPath,
+    });
+
+    const statusBarItem = this.addStatusBarItem();
+    this.modePathStore.onActiveModeChange((mode) => {
+      updateModeStatusBar(statusBarItem, mode);
     });
 
     this.addSettingTab(new ZkSettingTab(this.app, this));

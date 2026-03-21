@@ -5,6 +5,7 @@ type ModePaths = Record<Mode, string>;
 export class ModePathStore {
 	private paths: ModePaths;
 	private activeMode: Mode | null = null;
+	private onModeChange?: (mode: Mode | null) => void;
 
 	constructor(defaults: ModePaths) {
 		this.paths = { ...defaults };
@@ -24,5 +25,10 @@ export class ModePathStore {
 
 	setActiveMode(mode: Mode): void {
 		this.activeMode = mode;
+		this.onModeChange?.(mode);
+	}
+
+	onActiveModeChange(callback: (mode: Mode | null) => void): void {
+		this.onModeChange = callback;
 	}
 }

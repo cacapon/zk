@@ -64,4 +64,12 @@ describe("ModePathStore - アクティブモード", () => {
     store.setActiveMode("Ref");
     expect(store.getActiveMode()).toBe("Ref");
   });
+
+  test("onActiveModeChangeのコールバックがsetActiveMode時に呼ばれる", () => {
+    const calls: (string | null)[] = [];
+    store.onActiveModeChange((mode) => calls.push(mode));
+    store.setActiveMode("Core");
+    store.setActiveMode("Temp");
+    expect(calls).toEqual(["Core", "Temp"]);
+  });
 });
