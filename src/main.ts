@@ -3,6 +3,7 @@ import { ZkSettings, DEFAULT_SETTINGS, ZkSettingTab } from "./settings";
 import { ModePathStore } from "./core/modePathStore";
 import { selectModeCommand } from "./commands/selectMode";
 import { coreModeCommand } from "./commands/coreMode";
+import { mainActionCommand } from "./commands/mainAction";
 import { updateModeStatusBar } from "./ui/statusBar";
 
 export default class ZkPlugin extends Plugin {
@@ -41,7 +42,14 @@ export default class ZkPlugin extends Plugin {
       },
     });
 
-    // TODO: Refモードコマンド登録
+    this.addCommand({
+      id: "main-action",
+      name: "メインアクション（移動 / モード別作成）",
+      editorCallback: () => {
+        mainActionCommand(this.app, this.modePathStore, this.settings);
+      },
+    });
+
     // TODO: Refモードコマンド登録
     // TODO: Tempモードコマンド登録
     // TODO: バックリンク自動更新（on-save hook）

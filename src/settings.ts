@@ -1,27 +1,8 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type ZkPlugin from "./main";
 
-export interface ZkSettings {
-  coreRootPath: string;
-  refRootPath: string;
-  tempRootPath: string;
-  idLen: number;
-  aliasMinLen: number;
-  enableBacklinks: boolean;
-  enableDecayDetection: boolean;
-  decayDays: number;
-}
-
-export const DEFAULT_SETTINGS: ZkSettings = {
-  coreRootPath: "Core/Core.md",
-  refRootPath: "Ref/Ref.md",
-  tempRootPath: "Temp/Temp.md",
-  idLen: 15,
-  aliasMinLen: 4,
-  enableBacklinks: true,
-  enableDecayDetection: true,
-  decayDays: 14,
-};
+export { ZkSettings, DEFAULT_SETTINGS } from "./core/zkSettings";
+import type { ZkSettings } from "./core/zkSettings";
 
 export class ZkSettingTab extends PluginSettingTab {
   plugin: ZkPlugin;

@@ -1,34 +1,19 @@
-import { App, Editor, TFile } from "obsidian";
+import { App, TFile } from "obsidian";
 import { ZkSettings } from "../settings";
 import { genUniqueID, genUniqueAlias } from "../core/idGenerator";
 import { collectIDs, collectAliases } from "../core/vaultQuery";
 import { buildCoreNote } from "../core/noteTemplate";
+import { getLinkAtCursor } from "../core/editorUtils";
 
-function coreFolderPath(settings: ZkSettings): string {
+export function coreFolderPath(settings: ZkSettings): string {
   const p = settings.coreRootPath;
   return p.substring(0, p.lastIndexOf("/"));
 }
 
-// カーソル位置が [[...]] の内側にあれば { target, alias } を返す
-function getLinkAtCursor(
-  editor: Editor
-): { target: string; alias: string | null } | null {
-  const cursor = editor.getCursor();
-  const line = editor.getLine(cursor.line);
-  const regex = /\[\[([^\]]+)\]\]/g;
-  let match;
-  while ((match = regex.exec(line)) !== null) {
-    const start = match.index;
-    const end = regex.lastIndex;
-    if (cursor.ch >= start && cursor.ch <= end) {
-      const parts = match[1].trim().split("|");
-      return {
-        target: parts[0].trim(),
-        alias: parts[1] ? parts[1].trim() : null,
-      };
-    }
+async function ensureFolder(app: App, folderPath: string): Promise<void> {
+  if (!app.vault.getFolderByPath(folderPath)) {
+    await app.vault.createFolder(folderPath);
   }
-  return null;
 }
 
 async function buildNewCoreNote(
@@ -50,6 +35,19 @@ async function buildNewCoreNote(
   return { content, path };
 }
 
+// Coreノートを新規作成して開く（存在確認なし）
+export async function createCoreNote(
+  app: App,
+  settings: ZkSettings,
+  title: string
+): Promise<void> {
+  const folderPath = coreFolderPath(settings);
+  await ensureFolder(app, folderPath);
+  const { content, path } = await buildNewCoreNote(app, settings, title);
+  const newFile = await app.vault.create(path, content);
+  await app.workspace.getLeaf().openFile(newFile);
+}
+
 async function openOrCreateCoreNote(
   app: App,
   settings: ZkSettings,
@@ -63,14 +61,7 @@ async function openOrCreateCoreNote(
     return;
   }
 
-  const folderPath = coreFolderPath(settings);
-  if (!app.vault.getFolderByPath(folderPath)) {
-    await app.vault.createFolder(folderPath);
-  }
-
-  const { content, path } = await buildNewCoreNote(app, settings, title);
-  const newFile = await app.vault.create(path, content);
-  await app.workspace.getLeaf().openFile(newFile);
+  await createCoreNote(app, settings, title);
 }
 
 export async function coreModeCommand(
@@ -90,13 +81,7 @@ export async function coreModeCommand(
   // Case 2: 選択なし → 新規Coreノートを作成して開く
   const selection = editor.getSelection();
   if (!selection) {
-    const folderPath = coreFolderPath(settings);
-    if (!app.vault.getFolderByPath(folderPath)) {
-      await app.vault.createFolder(folderPath);
-    }
-    const { content, path } = await buildNewCoreNote(app, settings, "NewCore");
-    const newFile = await app.vault.create(path, content);
-    await app.workspace.getLeaf().openFile(newFile);
+    await createCoreNote(app, settings, "NewCore");
     return;
   }
 
