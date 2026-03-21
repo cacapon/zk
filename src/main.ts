@@ -2,6 +2,7 @@ import { Plugin } from "obsidian";
 import { ZkSettings, DEFAULT_SETTINGS, ZkSettingTab } from "./settings";
 import { ModePathStore } from "./core/modePathStore";
 import { selectModeCommand } from "./commands/selectMode";
+import { coreModeCommand } from "./commands/coreMode";
 
 export default class ZkPlugin extends Plugin {
   settings!: ZkSettings;
@@ -26,7 +27,15 @@ export default class ZkPlugin extends Plugin {
       },
     });
 
-    // TODO: Coreモードコマンド登録
+    this.addCommand({
+      id: "core-mode",
+      name: "Core: ノートを作成・開く",
+      editorCallback: () => {
+        coreModeCommand(this.app, this.settings);
+      },
+    });
+
+    // TODO: Refモードコマンド登録
     // TODO: Refモードコマンド登録
     // TODO: Tempモードコマンド登録
     // TODO: バックリンク自動更新（on-save hook）
