@@ -38,3 +38,30 @@ describe("ModePathStore", () => {
     expect(store.getPath("Temp")).toBe("/zk/tmp/b.md");
   });
 });
+
+describe("ModePathStore - アクティブモード", () => {
+  let store: ModePathStore;
+
+  beforeEach(() => {
+    store = new ModePathStore({
+      Core: "/zk/core",
+      Ref: "/zk/ref",
+      Temp: "/zk/temp",
+    });
+  });
+
+  test("初期状態のアクティブモードはnull", () => {
+    expect(store.getActiveMode()).toBeNull();
+  });
+
+  test("setActiveModeで設定したモードが返る", () => {
+    store.setActiveMode("Core");
+    expect(store.getActiveMode()).toBe("Core");
+  });
+
+  test("setActiveModeで別のモードに切り替えられる", () => {
+    store.setActiveMode("Core");
+    store.setActiveMode("Ref");
+    expect(store.getActiveMode()).toBe("Ref");
+  });
+});

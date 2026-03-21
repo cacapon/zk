@@ -33,6 +33,8 @@ export async function selectModeCommand(
   settings: ZkSettings
 ): Promise<void> {
   new ModeSuggestModal(app, async (mode: Mode) => {
+    store.setActiveMode(mode);
+
     const currentPath = store.getPath(mode);
     const currentFile = app.vault.getFileByPath(currentPath);
 
