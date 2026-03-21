@@ -35,6 +35,18 @@ async function buildNewCoreNote(
   return { content, path };
 }
 
+// 同名ファイルが存在する場合、"title 2", "title 3" と連番で一意なタイトルを返す
+function resolveUniqueTitle(
+  app: App,
+  folderPath: string,
+  title: string
+): string {
+  if (!app.vault.getFileByPath(`${folderPath}/${title}.md`)) return title;
+  let n = 2;
+  while (app.vault.getFileByPath(`${folderPath}/${title} ${n}.md`)) n++;
+  return `${title} ${n}`;
+}
+
 // Coreノートを新規作成して開く（存在確認なし）
 export async function createCoreNote(
   app: App,
@@ -43,7 +55,8 @@ export async function createCoreNote(
 ): Promise<void> {
   const folderPath = coreFolderPath(settings);
   await ensureFolder(app, folderPath);
-  const { content, path } = await buildNewCoreNote(app, settings, title);
+  const uniqueTitle = resolveUniqueTitle(app, folderPath, title);
+  const { content, path } = await buildNewCoreNote(app, settings, uniqueTitle);
   const newFile = await app.vault.create(path, content);
   await app.workspace.getLeaf().openFile(newFile);
 }
