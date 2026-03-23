@@ -23,8 +23,10 @@ function getSrcFiles(app: App, settings: ZkSettings): TFile[] {
 // 現在のファイルがRefノートの場合、frontmatterのsrcからSrcファイルを取得
 function getSrcFromRefNote(app: App, file: TFile): TFile | null {
   const fm = app.metadataCache.getFileCache(file)?.frontmatter;
-  const srcTitle = fm?.src;
-  if (!srcTitle) return null;
+  const srcRaw: unknown = fm?.src;
+  if (!srcRaw || typeof srcRaw !== "string") return null;
+  // "[[SrcTitle]]" → "SrcTitle"
+  const srcTitle = srcRaw.replace(/^\[\[|\]\]$/g, "").trim();
   return app.metadataCache.getFirstLinkpathDest(srcTitle, file.path) ?? null;
 }
 

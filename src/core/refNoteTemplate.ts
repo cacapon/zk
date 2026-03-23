@@ -13,7 +13,7 @@ id: "${id}"
 aliases:
   - "${alias}"
 tags:
-src: "${srcTitle}"
+src: "[[${srcTitle}]]"
 ---
 ↑: [[${srcTitle}]]
 
