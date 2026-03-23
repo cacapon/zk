@@ -48,6 +48,32 @@ export class ZkSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName("Src ルートノートのパス")
+      .setDesc("Srcノート（参考文献）のルートノート（vault内の相対パス）")
+      .addText((text) =>
+        text
+          .setPlaceholder("Src/Src.md")
+          .setValue(this.plugin.settings.srcRootPath)
+          .onChange(async (value) => {
+            this.plugin.settings.srcRootPath = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Book Search コマンドID")
+      .setDesc("新規Srcノート作成に使用するBook SearchプラグインのコマンドID")
+      .addText((text) =>
+        text
+          .setPlaceholder("obsidian-book-search-plugin:open-book-search-dialog")
+          .setValue(this.plugin.settings.bookSearchCommandId)
+          .onChange(async (value) => {
+            this.plugin.settings.bookSearchCommandId = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName("Temp ルートノートのパス")
       .setDesc("Tempモードのルートノート（vault内の相対パス）")
       .addText((text) =>

@@ -3,6 +3,7 @@ import { ZkSettings, DEFAULT_SETTINGS, ZkSettingTab } from "./settings";
 import { ModePathStore } from "./core/modePathStore";
 import { selectModeCommand } from "./commands/selectMode";
 import { coreModeCommand } from "./commands/coreMode";
+import { refModeCommand } from "./commands/refMode";
 import { mainActionCommand } from "./commands/mainAction";
 import { updateModeStatusBar } from "./ui/statusBar";
 
@@ -50,7 +51,14 @@ export default class ZkPlugin extends Plugin {
       },
     });
 
-    // TODO: Refモードコマンド登録
+    this.addCommand({
+      id: "ref-mode",
+      name: "Ref: Srcを選んでRefノートを作成",
+      callback: () => {
+        refModeCommand(this.app, this.settings);
+      },
+    });
+
     // TODO: Tempモードコマンド登録
     // TODO: バックリンク自動更新（on-save hook）
     // TODO: 腐敗検知

@@ -6,6 +6,7 @@ import { getLinkAtCursor } from "../core/editorUtils";
 import { detectModeFromPath } from "../core/modeDetector";
 import { ModeSuggestModal } from "../ui/modeSuggest";
 import { createCoreNote } from "./coreMode";
+import { refModeCommand } from "./refMode";
 
 async function executeAction(
   app: App,
@@ -24,8 +25,7 @@ async function executeAction(
         await createCoreNote(app, settings, "NewCore");
         break;
       case "Ref":
-        // TODO: Refモード実装後に追加
-        new Notice("Refノートの作成は未実装です");
+        await refModeCommand(app, settings);
         break;
       case "Temp":
         // TODO: Tempモード実装後に追加
@@ -40,25 +40,25 @@ async function executeAction(
   const existing = app.metadataCache.getFirstLinkpathDest(target, sourcePath);
 
   if (existing instanceof TFile) {
-    // 選択テキストの場合は [[]] で囲んでから移動
-    if (!link && selection) editor.replaceSelection(`[[${selection}]]`);
+    // Ref以外: 選択テキストを [[]] で囲んでから移動
+    if (mode !== "Ref" && !link && selection) editor.replaceSelection(`[[${selection}]]`);
     await app.workspace.getLeaf().openFile(existing);
     return;
   }
 
   // 存在しない → アクティブモードで作成
-  if (!link && selection) editor.replaceSelection(`[[${selection}]]`);
-
   switch (mode) {
     case "Core":
+      if (!link && selection) editor.replaceSelection(`[[${selection}]]`);
       await createCoreNote(app, settings, target);
       break;
     case "Ref":
-      // TODO: Refモード実装後に追加
-      new Notice("Refノートの作成は未実装です");
+      // Refはエディタを変更せずサジェストフローへ
+      await refModeCommand(app, settings);
       break;
     case "Temp":
       // TODO: Tempモード実装後に追加
+      if (!link && selection) editor.replaceSelection(`[[${selection}]]`);
       new Notice("Tempノートの作成は未実装です");
       break;
   }

@@ -13,6 +13,7 @@ export function detectModeFromPath(
   const folders: [Mode, string][] = [
     ["Core", folderPath(settings.coreRootPath)],
     ["Ref",  folderPath(settings.refRootPath)],
+    ["Ref",  folderPath(settings.srcRootPath)],  // SrcフォルダもRefモードとして扱う
     ["Temp", folderPath(settings.tempRootPath)],
   ];
 
