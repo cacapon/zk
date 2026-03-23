@@ -14,6 +14,7 @@ aliases:
   - "${alias}"
 tags:
 src: "[[${srcTitle}]]"
+page:
 ---
 ↑: [[${srcTitle}]]
 
