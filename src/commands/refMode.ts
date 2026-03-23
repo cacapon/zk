@@ -104,7 +104,7 @@ export async function refModeCommand(
   for (const srcFile of srcFiles) {
     items.push({
       type: "src",
-      label: `${srcFile.basename}  （${srcFile.path}）`,
+      label: srcFile.basename,
       srcFile,
     });
   }
