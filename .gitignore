@@ -2,6 +2,9 @@
 main.js
 main.js.map
 
+# Obsidian plugin local settings (runtime data, not for version control)
+data.json
+
 # Logs
 logs
 *.log
