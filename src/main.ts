@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Plugin, TFile } from "obsidian";
 import { ZkSettings, DEFAULT_SETTINGS, ZkSettingTab } from "./settings";
 import { ModePathStore } from "./core/modePathStore";
 import { selectModeCommand } from "./commands/selectMode";
@@ -7,6 +7,7 @@ import { refModeCommand } from "./commands/refMode";
 import { mainActionCommand } from "./commands/mainAction";
 import { updateModeStatusBar } from "./ui/statusBar";
 import { updateDecayList } from "./core/decayDetector";
+import { updateBacklinksOnSave } from "./core/backlinkUpdater";
 
 export default class ZkPlugin extends Plugin {
   settings!: ZkSettings;
@@ -69,7 +70,16 @@ export default class ZkPlugin extends Plugin {
       })
     );
 
-    // TODO: バックリンク自動更新（on-save hook）
+    // バックリンク自動更新（保存時）
+    const backlinkSkipPaths = new Set<string>();
+    this.registerEvent(
+      this.app.vault.on("modify", async (file) => {
+        if (!(file instanceof TFile)) return;
+        if (!this.settings.enableBacklinks) return;
+        if (backlinkSkipPaths.has(file.path)) return;
+        await updateBacklinksOnSave(this.app, this.settings, file, backlinkSkipPaths);
+      })
+    );
   }
 
   onunload() {}
