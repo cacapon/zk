@@ -48,59 +48,30 @@ export function buildBacklinkSection(backlinkFiles: TFile[], app: App): string {
     return `${BL_START}\n${BL_END}`;
   }
 
-  const lines = backlinkFiles.map((f) => {
-    const aliases = app.metadataCache.getFileCache(f)?.frontmatter?.aliases;
-    const alias = Array.isArray(aliases) ? aliases[0] : undefined;
-    return alias ? `- [[${f.basename}|${alias}]]` : `- [[${f.basename}]]`;
+  const rows = backlinkFiles.map((f) => {
+    const fm      = app.metadataCache.getFileCache(f)?.frontmatter;
+    const aliases = fm?.aliases;
+    const alias   = Array.isArray(aliases) ? (aliases[0] ?? "") : "";
+    const created = fm?.created ?? "";
+    const updated = new Date(f.stat.mtime).toISOString().split("T")[0];
+    return `[[${f.basename}]] ${alias} ${created} ${updated}`;
   });
 
-  return `${BL_START}\n${lines.join("\n")}\n${BL_END}`;
+  return `${BL_START}\n${rows.join("\n")}\n${BL_END}`;
 }
 
-async function rewriteBacklinks(app: App, targetFile: TFile): Promise<void> {
-  const content = await app.vault.read(targetFile);
+// 指定ノートのバックリンクセクションを現在の状態で書き直す
+export async function updateBacklinksOf(app: App, file: TFile): Promise<void> {
+  const content = await app.vault.read(file);
   if (!content.includes(BL_START)) return;
 
-  const section = buildBacklinkSection(getBacklinkFiles(app, targetFile), app);
+  const section = buildBacklinkSection(getBacklinkFiles(app, file), app);
   const newContent = content.replace(
     new RegExp(`${BL_START}[\\s\\S]*?${BL_END}`),
     section
   );
 
   if (newContent !== content) {
-    await app.vault.modify(targetFile, newContent);
-  }
-}
-
-// ファイル保存時に関連する Core/Ref ノートのバックリンクを更新する
-// skipPaths: 現在更新中のパスセット（無限ループ防止）
-export async function updateBacklinksOnSave(
-  app: App,
-  settings: ZkSettings,
-  changedFile: TFile,
-  skipPaths: Set<string>
-): Promise<void> {
-  // 更新対象: changedFile のアウトゴーイングリンク先 Core/Ref + changedFile 自身（Core/Ref の場合）
-  const targets = new Set<string>();
-
-  const outgoing = app.metadataCache.resolvedLinks[changedFile.path] ?? {};
-  for (const targetPath of Object.keys(outgoing)) {
-    if (isInCoreOrRef(targetPath, settings)) targets.add(targetPath);
-  }
-
-  if (isInCoreOrRef(changedFile.path, settings)) targets.add(changedFile.path);
-
-  for (const targetPath of targets) {
-    if (skipPaths.has(targetPath)) continue;
-
-    const targetFile = app.vault.getFileByPath(targetPath);
-    if (!(targetFile instanceof TFile)) continue;
-
-    skipPaths.add(targetPath);
-    try {
-      await rewriteBacklinks(app, targetFile);
-    } finally {
-      skipPaths.delete(targetPath);
-    }
+    await app.vault.modify(file, newContent);
   }
 }

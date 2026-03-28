@@ -4,6 +4,7 @@ import { genUniqueID, genUniqueAlias } from "../core/idGenerator";
 import { collectIDs, collectAliases } from "../core/vaultQuery";
 import { buildCoreNote } from "../core/noteTemplate";
 import { getLinkAtCursor } from "../core/editorUtils";
+import { updateBacklinksOf } from "../core/backlinkUpdater";
 
 export function coreFolderPath(settings: ZkSettings): string {
   const p = settings.coreRootPath;
@@ -53,12 +54,16 @@ export async function createCoreNote(
   settings: ZkSettings,
   title: string
 ): Promise<void> {
+  const parentFile = app.workspace.getActiveFile(); // 作成前に取得
   const folderPath = coreFolderPath(settings);
   await ensureFolder(app, folderPath);
   const uniqueTitle = resolveUniqueTitle(app, folderPath, title);
   const { content, path } = await buildNewCoreNote(app, settings, uniqueTitle);
   const newFile = await app.vault.create(path, content);
   await app.workspace.getLeaf().openFile(newFile);
+  if (settings.enableBacklinks && parentFile instanceof TFile) {
+    await updateBacklinksOf(app, parentFile);
+  }
 }
 
 async function openOrCreateCoreNote(

@@ -3,7 +3,7 @@ import {
   isInCoreOrRef,
   getBacklinkFiles,
   buildBacklinkSection,
-  updateBacklinksOnSave,
+  updateBacklinksOf,
 } from "../../src/core/backlinkUpdater";
 import { DEFAULT_SETTINGS } from "../../src/core/zkSettings";
 import { TFile } from "../../tests/__mocks__/obsidian";
@@ -110,8 +110,8 @@ describe("getBacklinkFiles", () => {
 
   test("更新日時の新しい順に並ぶ", () => {
     const target = fakeFile("Core/target.md");
-    const older = fakeFile("Core/older.md", 1000);
-    const newer = fakeFile("Core/newer.md", 9000);
+    const older  = fakeFile("Core/older.md", 1000);
+    const newer  = fakeFile("Core/newer.md", 9000);
 
     const app = {
       metadataCache: {
@@ -148,185 +148,104 @@ describe("buildBacklinkSection", () => {
     expect(result).toBe("<!-- ZK_BACKLINKS_START -->\n<!-- ZK_BACKLINKS_END -->");
   });
 
-  test("ファイル名を [[basename]] 形式でリスト化する", () => {
-    const file = fakeFile("Core/note.md");
-    const app = { metadataCache: { getFileCache: vi.fn().mockReturnValue({}) } };
-    const result = buildBacklinkSection([file as any], app as any);
-    expect(result).toContain("- [[note]]");
-  });
-
-  test("エイリアスがある場合は [[basename|alias]] 形式にする", () => {
-    const file = fakeFile("Core/note.md");
+  test("行頭から [[basename]] alias 作成日 更新日 の形式で出力する", () => {
+    const file = fakeFile("Core/note.md", 1743120000000); // 2025-03-28
     const app = {
       metadataCache: {
         getFileCache: vi.fn().mockReturnValue({
-          frontmatter: { aliases: ["Cnot"] },
+          frontmatter: { aliases: ["Cnot"], created: "2025-01-01" },
         }),
       },
     };
     const result = buildBacklinkSection([file as any], app as any);
-    expect(result).toContain("- [[note|Cnot]]");
+    expect(result).toContain("[[note]] Cnot 2025-01-01");
+    // 行頭が [[ で始まることを確認
+    const lines = result.split("\n").filter(l => l.startsWith("[["));
+    expect(lines).toHaveLength(1);
+  });
+
+  test("Aliasがない場合は空文字になる", () => {
+    const file = fakeFile("Core/note.md", 1743120000000);
+    const app = {
+      metadataCache: {
+        getFileCache: vi.fn().mockReturnValue({ frontmatter: {} }),
+      },
+    };
+    const result = buildBacklinkSection([file as any], app as any);
+    expect(result).toContain("[[note]]  ");
   });
 });
 
 // =========================================================
-// updateBacklinksOnSave
+// updateBacklinksOf
 // =========================================================
 
-describe("updateBacklinksOnSave", () => {
+describe("updateBacklinksOf", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  test("リンク先のCore/Refノートのバックリンクセクションを更新する", async () => {
-    const changedFile = fakeFile("Temp/memo.md");
+  test("バックリンクが存在する場合、セクションを書き込む", async () => {
     const targetFile = fakeFile("Core/note.md");
-
-    const initialContent = `# note\n\n%%\n## Backlinks (auto)\n<!-- ZK_BACKLINKS_START -->\n<!-- ZK_BACKLINKS_END -->\n%%`;
+    const backlinker = fakeFile("Core/other.md");
     let written = "";
 
     const app = {
       metadataCache: {
-        resolvedLinks: { "Temp/memo.md": { "Core/note.md": 1 } },
+        resolvedLinks: { "Core/other.md": { "Core/note.md": 1 } },
         getFileCache: vi.fn().mockReturnValue({ links: [{ link: "note" }] }),
         getFirstLinkpathDest: vi.fn().mockReturnValue(targetFile),
       },
       vault: {
-        getFileByPath: vi.fn().mockImplementation((p: string) => {
-          if (p === "Core/note.md") return targetFile;
-          if (p === "Temp/memo.md") return changedFile;
-          return null;
-        }),
-        read: vi.fn().mockResolvedValue(initialContent),
+        getFileByPath: vi.fn().mockReturnValue(backlinker),
+        read: vi.fn().mockResolvedValue("<!-- ZK_BACKLINKS_START -->\n<!-- ZK_BACKLINKS_END -->"),
         modify: vi.fn().mockImplementation((_f: any, c: string) => { written = c; }),
       },
     };
 
-    await updateBacklinksOnSave(app as any, settings, changedFile as any, new Set());
-
-    expect(app.vault.modify).toHaveBeenCalledOnce();
-    expect(written).toContain("[[memo]]");
-  });
-
-  test("changedFile 自身が Core/Ref の場合、自身のバックリンクも更新する", async () => {
-    const changedFile = fakeFile("Core/self.md");
-    const linkedFrom = fakeFile("Core/other.md");
-
-    const initialContent = `%%\n<!-- ZK_BACKLINKS_START -->\n<!-- ZK_BACKLINKS_END -->\n%%`;
-    let written = "";
-
-    const app = {
-      metadataCache: {
-        resolvedLinks: {
-          "Core/self.md": {},
-          "Core/other.md": { "Core/self.md": 1 },
-        },
-        getFileCache: vi.fn().mockReturnValue({ links: [{ link: "self" }] }),
-        getFirstLinkpathDest: vi.fn().mockReturnValue(changedFile),
-      },
-      vault: {
-        getFileByPath: vi.fn().mockImplementation((p: string) => {
-          if (p === "Core/self.md") return changedFile;
-          if (p === "Core/other.md") return linkedFrom;
-          return null;
-        }),
-        read: vi.fn().mockResolvedValue(initialContent),
-        modify: vi.fn().mockImplementation((_f: any, c: string) => { written = c; }),
-      },
-    };
-
-    await updateBacklinksOnSave(app as any, settings, changedFile as any, new Set());
+    await updateBacklinksOf(app as any, targetFile as any);
 
     expect(app.vault.modify).toHaveBeenCalledOnce();
     expect(written).toContain("[[other]]");
   });
 
-  test("skipPaths に含まれるパスはスキップされる", async () => {
-    const changedFile = fakeFile("Temp/memo.md");
+  test("ZK_BACKLINKSブロックがないノートは変更しない", async () => {
     const targetFile = fakeFile("Core/note.md");
 
     const app = {
       metadataCache: {
-        resolvedLinks: { "Temp/memo.md": { "Core/note.md": 1 } },
+        resolvedLinks: {},
         getFileCache: vi.fn(),
         getFirstLinkpathDest: vi.fn(),
       },
       vault: {
-        getFileByPath: vi.fn().mockReturnValue(targetFile),
-        read: vi.fn(),
-        modify: vi.fn(),
-      },
-    };
-
-    const skipPaths = new Set(["Core/note.md"]);
-    await updateBacklinksOnSave(app as any, settings, changedFile as any, skipPaths);
-
-    expect(app.vault.modify).not.toHaveBeenCalled();
-  });
-
-  test("Core/Refノート以外へのリンクは無視する", async () => {
-    const changedFile = fakeFile("Core/note.md");
-
-    const app = {
-      metadataCache: {
-        resolvedLinks: { "Core/note.md": { "Temp/tmp.md": 1 } },
-        getFileCache: vi.fn().mockReturnValue({}),
-        getFirstLinkpathDest: vi.fn(),
-      },
-      vault: {
-        getFileByPath: vi.fn().mockReturnValue(fakeFile("Core/note.md")),
-        read: vi.fn().mockResolvedValue("no backlinks block"),
-        modify: vi.fn(),
-      },
-    };
-
-    await updateBacklinksOnSave(app as any, settings, changedFile as any, new Set());
-
-    expect(app.vault.modify).not.toHaveBeenCalled();
-  });
-
-  test("ZK_BACKLINKSブロックがないノートは変更しない", async () => {
-    const changedFile = fakeFile("Temp/memo.md");
-    const targetFile = fakeFile("Core/note.md");
-
-    const app = {
-      metadataCache: {
-        resolvedLinks: { "Temp/memo.md": { "Core/note.md": 1 } },
-        getFileCache: vi.fn().mockReturnValue({ links: [{ link: "note" }] }),
-        getFirstLinkpathDest: vi.fn().mockReturnValue(targetFile),
-      },
-      vault: {
-        getFileByPath: vi.fn().mockReturnValue(targetFile),
+        getFileByPath: vi.fn(),
         read: vi.fn().mockResolvedValue("# note\n\nバックリンクブロックなし"),
         modify: vi.fn(),
       },
     };
 
-    await updateBacklinksOnSave(app as any, settings, changedFile as any, new Set());
+    await updateBacklinksOf(app as any, targetFile as any);
 
     expect(app.vault.modify).not.toHaveBeenCalled();
   });
 
   test("内容に変化がない場合はmodifyを呼ばない", async () => {
-    const changedFile = fakeFile("Temp/memo.md");
     const targetFile = fakeFile("Core/note.md");
-
-    // バックリンクなし、かつ既にDECAY_STARTブロックが空の状態
     const content = "<!-- ZK_BACKLINKS_START -->\n<!-- ZK_BACKLINKS_END -->";
 
     const app = {
       metadataCache: {
-        resolvedLinks: { "Temp/memo.md": { "Core/note.md": 1 } },
-        // リンクはあるがresolveLinkが null → バックリンクなしと同等
-        getFileCache: vi.fn().mockReturnValue({ links: [{ link: "note" }] }),
+        resolvedLinks: {},
+        getFileCache: vi.fn().mockReturnValue(null),
         getFirstLinkpathDest: vi.fn().mockReturnValue(null),
       },
       vault: {
-        getFileByPath: vi.fn().mockReturnValue(targetFile),
+        getFileByPath: vi.fn(),
         read: vi.fn().mockResolvedValue(content),
         modify: vi.fn(),
       },
     };
 
-    await updateBacklinksOnSave(app as any, settings, changedFile as any, new Set());
+    await updateBacklinksOf(app as any, targetFile as any);
 
     expect(app.vault.modify).not.toHaveBeenCalled();
   });

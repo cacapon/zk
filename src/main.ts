@@ -1,4 +1,4 @@
-import { Plugin, TFile } from "obsidian";
+import { Plugin } from "obsidian";
 import { ZkSettings, DEFAULT_SETTINGS, ZkSettingTab } from "./settings";
 import { ModePathStore } from "./core/modePathStore";
 import { selectModeCommand } from "./commands/selectMode";
@@ -7,7 +7,7 @@ import { refModeCommand } from "./commands/refMode";
 import { mainActionCommand } from "./commands/mainAction";
 import { updateModeStatusBar } from "./ui/statusBar";
 import { updateDecayList } from "./core/decayDetector";
-import { updateBacklinksOnSave } from "./core/backlinkUpdater";
+import { updateBacklinksOf, isInCoreOrRef } from "./core/backlinkUpdater";
 
 export default class ZkPlugin extends Plugin {
   settings!: ZkSettings;
@@ -61,23 +61,16 @@ export default class ZkPlugin extends Plugin {
       },
     });
 
-    // Tempルートノートを開いたら腐敗リストを更新
+    // ファイルを開いたタイミングの処理
     this.registerEvent(
-      this.app.workspace.on("file-open", (file) => {
-        if (file?.path === this.settings.tempRootPath) {
+      this.app.workspace.on("file-open", async (file) => {
+        if (!file) return;
+        if (file.path === this.settings.tempRootPath) {
           updateDecayList(this.app, this.settings);
         }
-      })
-    );
-
-    // バックリンク自動更新（保存時）
-    const backlinkSkipPaths = new Set<string>();
-    this.registerEvent(
-      this.app.vault.on("modify", async (file) => {
-        if (!(file instanceof TFile)) return;
-        if (!this.settings.enableBacklinks) return;
-        if (backlinkSkipPaths.has(file.path)) return;
-        await updateBacklinksOnSave(this.app, this.settings, file, backlinkSkipPaths);
+        if (this.settings.enableBacklinks && isInCoreOrRef(file.path, this.settings)) {
+          await updateBacklinksOf(this.app, file);
+        }
       })
     );
   }
