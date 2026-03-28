@@ -7,6 +7,7 @@ import { detectModeFromPath } from "../core/modeDetector";
 import { ModeSuggestModal } from "../ui/modeSuggest";
 import { createCoreNote } from "./coreMode";
 import { refModeCommand } from "./refMode";
+import { createTempNote, openOrCreateTempNote } from "./tempMode";
 
 async function executeAction(
   app: App,
@@ -28,8 +29,7 @@ async function executeAction(
         await refModeCommand(app, settings);
         break;
       case "Temp":
-        // TODO: Tempモード実装後に追加
-        new Notice("Tempノートの作成は未実装です");
+        await createTempNote(app, settings, "NewTemp");
         break;
     }
     return;
@@ -57,9 +57,8 @@ async function executeAction(
       await refModeCommand(app, settings);
       break;
     case "Temp":
-      // TODO: Tempモード実装後に追加
       if (!link && selection) editor.replaceSelection(`[[${selection}]]`);
-      new Notice("Tempノートの作成は未実装です");
+      await openOrCreateTempNote(app, settings, target);
       break;
   }
 }
