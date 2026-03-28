@@ -7,6 +7,7 @@ import { refModeCommand } from "./commands/refMode";
 import { mainActionCommand } from "./commands/mainAction";
 import { updateModeStatusBar } from "./ui/statusBar";
 import { updateDecayList } from "./core/decayDetector";
+import { updateBacklinksOf, isInCoreOrRef } from "./core/backlinkUpdater";
 
 export default class ZkPlugin extends Plugin {
   settings!: ZkSettings;
@@ -60,16 +61,18 @@ export default class ZkPlugin extends Plugin {
       },
     });
 
-    // Tempルートノートを開いたら腐敗リストを更新
+    // ファイルを開いたタイミングの処理
     this.registerEvent(
-      this.app.workspace.on("file-open", (file) => {
-        if (file?.path === this.settings.tempRootPath) {
+      this.app.workspace.on("file-open", async (file) => {
+        if (!file) return;
+        if (file.path === this.settings.tempRootPath) {
           updateDecayList(this.app, this.settings);
+        }
+        if (this.settings.enableBacklinks && isInCoreOrRef(file.path, this.settings)) {
+          await updateBacklinksOf(this.app, file);
         }
       })
     );
-
-    // TODO: バックリンク自動更新（on-save hook）
   }
 
   onunload() {}

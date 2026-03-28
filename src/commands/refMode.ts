@@ -6,6 +6,7 @@ import { collectIDs, collectAliases } from "../core/vaultQuery";
 import { buildRefNote } from "../core/refNoteTemplate";
 import { RefSuggestModal, RefSuggestItem } from "../ui/refSuggest";
 import { InputModal } from "../ui/inputModal";
+import { updateBacklinksOf } from "../core/backlinkUpdater";
 
 function refFolderPath(settings: ZkSettings): string {
   return settings.refRootPath.substring(0, settings.refRootPath.lastIndexOf("/"));
@@ -65,6 +66,9 @@ async function createRefNote(
 
   const newFile = await app.vault.create(`${folderPath}/${uniqueTitle}.md`, content);
   await app.workspace.getLeaf().openFile(newFile);
+  if (settings.enableBacklinks) {
+    await updateBacklinksOf(app, srcFile);
+  }
 }
 
 export async function refModeCommand(
