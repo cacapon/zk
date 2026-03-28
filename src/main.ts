@@ -6,6 +6,7 @@ import { coreModeCommand } from "./commands/coreMode";
 import { refModeCommand } from "./commands/refMode";
 import { mainActionCommand } from "./commands/mainAction";
 import { updateModeStatusBar } from "./ui/statusBar";
+import { updateDecayList } from "./core/decayDetector";
 
 export default class ZkPlugin extends Plugin {
   settings!: ZkSettings;
@@ -59,9 +60,16 @@ export default class ZkPlugin extends Plugin {
       },
     });
 
-    // TODO: Tempモードコマンド登録
+    // Tempルートノートを開いたら腐敗リストを更新
+    this.registerEvent(
+      this.app.workspace.on("file-open", (file) => {
+        if (file?.path === this.settings.tempRootPath) {
+          updateDecayList(this.app, this.settings);
+        }
+      })
+    );
+
     // TODO: バックリンク自動更新（on-save hook）
-    // TODO: 腐敗検知
   }
 
   onunload() {}
