@@ -26,9 +26,13 @@ function buildDecaySection(decayedFiles: TFile[]): string {
   if (decayedFiles.length === 0) {
     return `${DECAY_START}\n${DECAY_END}`;
   }
+  const now = Date.now();
   const links = decayedFiles
     .sort((a, b) => a.stat.mtime - b.stat.mtime) // 古いものを上に
-    .map((f) => `- [[${f.basename}]]`)
+    .map((f) => {
+      const days = Math.floor((now - f.stat.mtime) / (24 * 60 * 60 * 1000));
+      return `- [[${f.basename}]] (${days}日経過)`;
+    })
     .join("\n");
   return `${DECAY_START}\n${links}\n${DECAY_END}`;
 }
