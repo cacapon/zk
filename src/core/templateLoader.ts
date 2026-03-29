@@ -74,18 +74,17 @@ type: src
 tags:
   - book
 title: "{{title}}"
-author: <%=book.authors.map(author=>\`\\n  - "[[\${author}]]"\`).join('')%>
+author: "{{author}}"
 publisher: "{{publisher}}"
 publishdate: "{{publishDate}}"
 created: "{{DATE:YYYY-MM-DD}}"
-localCover: "{{localCoverImage}}"
 finishReading:
 id:
 aliases:
 ---
 ↑: [[Src]]
 
-<%* const cover = "{{localCoverImage}}"; if (cover.trim() !== "") { tR += \`![[\${cover}|150]]\` } %>
+![[{{localCoverImage}}|150]]
 
 %%
 ## Backlinks (auto)
