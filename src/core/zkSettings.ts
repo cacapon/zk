@@ -12,8 +12,10 @@ export interface ZkSettings {
   decayDays: number;
   coreNoteTemplatePath: string;
   refNoteTemplatePath: string;
+  srcNoteTemplatePath: string;
   coreRootTemplatePath: string;
   refRootTemplatePath: string;
+  srcRootTemplatePath: string;
   tempRootTemplatePath: string;
 }
 
@@ -31,7 +33,9 @@ export const DEFAULT_SETTINGS: ZkSettings = {
   decayDays: 14,
   coreNoteTemplatePath: "Meta/Template/zk-core-note.md",
   refNoteTemplatePath:  "Meta/Template/zk-ref-note.md",
+  srcNoteTemplatePath:  "Meta/Template/zk-src-note.md",
   coreRootTemplatePath: "Meta/Template/zk-core-root.md",
   refRootTemplatePath:  "Meta/Template/zk-ref-root.md",
+  srcRootTemplatePath:  "Meta/Template/zk-src-root.md",
   tempRootTemplatePath: "Meta/Template/zk-temp-root.md",
 };
