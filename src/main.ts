@@ -8,6 +8,7 @@ import { mainActionCommand } from "./commands/mainAction";
 import { updateModeStatusBar } from "./ui/statusBar";
 import { updateDecayList } from "./core/decayDetector";
 import { updateBacklinksOf, isInCoreOrRef } from "./core/backlinkUpdater";
+import { assignSrcIdIfMissing, isInSrc } from "./core/srcIdAssigner";
 import { initializeCommand } from "./commands/initializeCommand";
 
 export default class ZkPlugin extends Plugin {
@@ -79,6 +80,9 @@ export default class ZkPlugin extends Plugin {
         }
         if (this.settings.enableBacklinks && isInCoreOrRef(file.path, this.settings)) {
           await updateBacklinksOf(this.app, file, this.settings.backlinkExcludePatterns);
+        }
+        if (isInSrc(file.path, this.settings)) {
+          await assignSrcIdIfMissing(this.app, file, this.settings);
         }
       })
     );

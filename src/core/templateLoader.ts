@@ -53,6 +53,46 @@ export const DEFAULT_CORE_ROOT_TEMPLATE = `# Core
 <!-- ZK_BACKLINKS_END -->
 %%`;
 
+export const DEFAULT_SRC_ROOT_TEMPLATE = `# Src
+
+書籍・論文・記事など外部知識の参考文献ノート。
+Refノートの起点となり、ここから参照箇所（Ref）を派生させる。
+
+## Srcノートとは
+- 書籍・論文・記事などを表すノート
+- BookSearchプラグインで作成する
+- 各Srcノートへのリンクはここからたどれる
+
+%%
+## Backlinks (auto)
+<!-- ZK_BACKLINKS_START -->
+<!-- ZK_BACKLINKS_END -->
+%%`;
+
+export const DEFAULT_SRC_NOTE_TEMPLATE = `---
+type: src
+tags:
+  - book
+title: "{{title}}"
+author: <%=book.authors.map(author=>\`\\n  - "[[\${author}]]"\`).join('')%>
+publisher: "{{publisher}}"
+publishdate: "{{publishDate}}"
+created: "{{DATE:YYYY-MM-DD}}"
+localCover: "{{localCoverImage}}"
+finishReading:
+id:
+aliases:
+---
+↑: [[Src]]
+
+<%* const cover = "{{localCoverImage}}"; if (cover.trim() !== "") { tR += \`![[\${cover}|150]]\` } %>
+
+%%
+## Backlinks (auto)
+<!-- ZK_BACKLINKS_START -->
+<!-- ZK_BACKLINKS_END -->
+%%`;
+
 export const DEFAULT_TEMP_ROOT_TEMPLATE = `# Temp
 
 一時的なメモや思考の記録。

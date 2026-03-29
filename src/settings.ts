@@ -129,6 +129,19 @@ export class ZkSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName("Srcノート テンプレートパス")
+      .setDesc("Book Searchのテンプレートとして指定するファイルパス")
+      .addText((text) =>
+        text
+          .setPlaceholder("Meta/Template/zk-src-note.md")
+          .setValue(this.plugin.settings.srcNoteTemplatePath)
+          .onChange(async (value) => {
+            this.plugin.settings.srcNoteTemplatePath = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName("CoreRoot テンプレートパス")
       .addText((text) =>
         text
@@ -148,6 +161,18 @@ export class ZkSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.refRootTemplatePath)
           .onChange(async (value) => {
             this.plugin.settings.refRootTemplatePath = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("SrcRoot テンプレートパス")
+      .addText((text) =>
+        text
+          .setPlaceholder("Meta/Template/zk-src-root.md")
+          .setValue(this.plugin.settings.srcRootTemplatePath)
+          .onChange(async (value) => {
+            this.plugin.settings.srcRootTemplatePath = value;
             await this.plugin.saveSettings();
           })
       );
