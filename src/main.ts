@@ -9,7 +9,9 @@ import { updateModeStatusBar } from "./ui/statusBar";
 import { updateDecayList } from "./core/decayDetector";
 import { updateBacklinksOf, isInCoreOrRef } from "./core/backlinkUpdater";
 import { assignSrcIdIfMissing, isInSrc } from "./core/srcIdAssigner";
+import { detectModeFromPath } from "./core/modeDetector";
 import { initializeCommand } from "./commands/initializeCommand";
+import { goUpCommand } from "./commands/goUpCommand";
 
 export default class ZkPlugin extends Plugin {
   settings!: ZkSettings;
@@ -71,14 +73,29 @@ export default class ZkPlugin extends Plugin {
       },
     });
 
+    this.addCommand({
+      id: "go-up",
+      name: "親ノートに移動する（↑）",
+      callback: () => {
+        goUpCommand(this.app);
+      },
+    });
+
     // ファイルを開いたタイミングの処理
     this.registerEvent(
       this.app.workspace.on("file-open", async (file) => {
         if (!file) return;
+
+        // モードのアクティブパスを更新
+        const detectedMode = detectModeFromPath(file.path, this.settings);
+        if (detectedMode) {
+          this.modePathStore.setPath(detectedMode, file.path);
+        }
+
         if (file.path === this.settings.tempRootPath) {
           updateDecayList(this.app, this.settings);
         }
-        if (this.settings.enableBacklinks && isInCoreOrRef(file.path, this.settings)) {
+        if (this.settings.enableBacklinks && (isInCoreOrRef(file.path, this.settings) || isInSrc(file.path, this.settings))) {
           await updateBacklinksOf(this.app, file, this.settings.backlinkExcludePatterns);
         }
         if (isInSrc(file.path, this.settings)) {

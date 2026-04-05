@@ -193,7 +193,7 @@ describe("buildBacklinkSection", () => {
     expect(result).toBe("<!-- ZK_BACKLINKS_START -->\n<!-- ZK_BACKLINKS_END -->");
   });
 
-  test("行頭から [[basename]] alias 作成日 更新日 の形式で出力する", () => {
+  test("テーブル形式で [[basename]] alias 作成日 更新日 の形式で出力する", () => {
     const file = fakeFile("Core/note.md", 1743120000000); // 2025-03-28
     const app = {
       metadataCache: {
@@ -203,10 +203,10 @@ describe("buildBacklinkSection", () => {
       },
     };
     const result = buildBacklinkSection([file as any], app as any);
-    expect(result).toContain("[[note]] Cnot 2025-01-01");
-    // 行頭が [[ で始まることを確認
-    const lines = result.split("\n").filter(l => l.startsWith("[["));
-    expect(lines).toHaveLength(1);
+    expect(result).toContain("| [[note]] | Cnot | 2025-01-01 |");
+    // ヘッダー行が含まれることを確認
+    expect(result).toContain("| ノート | エイリアス | 作成日 | 更新日 |");
+    expect(result).toContain("| --- | --- | --- | --- |");
   });
 
   test("Aliasがない場合は空文字になる", () => {
@@ -217,7 +217,7 @@ describe("buildBacklinkSection", () => {
       },
     };
     const result = buildBacklinkSection([file as any], app as any);
-    expect(result).toContain("[[note]]  ");
+    expect(result).toContain("| [[note]] |  |  |");
   });
 });
 

@@ -62,16 +62,17 @@ export function buildBacklinkSection(backlinkFiles: TFile[], app: App): string {
     return `${BL_START}\n${BL_END}`;
   }
 
+  const header = "| ノート | エイリアス | 作成日 | 更新日 |\n| --- | --- | --- | --- |";
   const rows = backlinkFiles.map((f) => {
     const fm      = app.metadataCache.getFileCache(f)?.frontmatter;
     const aliases = fm?.aliases;
     const alias   = Array.isArray(aliases) ? (aliases[0] ?? "") : "";
     const created = fm?.created ?? "";
     const updated = new Date(f.stat.mtime).toISOString().split("T")[0];
-    return `[[${f.basename}]] ${alias} ${created} ${updated}`;
+    return `| [[${f.basename}]] | ${alias} | ${created} | ${updated} |`;
   });
 
-  return `${BL_START}\n${rows.join("\n")}\n${BL_END}`;
+  return `${BL_START}\n${header}\n${rows.join("\n")}\n${BL_END}`;
 }
 
 // 指定ノートのバックリンクセクションを現在の状態で書き直す
