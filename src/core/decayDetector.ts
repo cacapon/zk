@@ -15,22 +15,32 @@ export function detectDecayedNotes(app: App, settings: ZkSettings): TFile[] {
 
   return getMdFiles(app, folderPath).filter((file) => {
     if (file.path === rootPath) return false; // ルートノートは除外
-    return now - file.stat.mtime > thresholdMs;
+    // フロントマターのcreatedを優先。なければctime（ファイル作成日時）を使う
+    const fm = app.metadataCache.getFileCache(file)?.frontmatter;
+    const created = fm?.created;
+    const baseTime = created ? new Date(String(created)).getTime() : file.stat.ctime;
+    return now - baseTime > thresholdMs;
   });
 }
 
 const DECAY_START = "<!-- DECAY_START -->";
 const DECAY_END = "<!-- DECAY_END -->";
 
-function buildDecaySection(decayedFiles: TFile[]): string {
+function getBaseTime(app: App, file: TFile): number {
+  const fm = app.metadataCache.getFileCache(file)?.frontmatter;
+  const created = fm?.created;
+  return created ? new Date(String(created)).getTime() : file.stat.ctime;
+}
+
+function buildDecaySection(decayedFiles: TFile[], app: App): string {
   if (decayedFiles.length === 0) {
     return `${DECAY_START}\n${DECAY_END}`;
   }
   const now = Date.now();
   const links = decayedFiles
-    .sort((a, b) => a.stat.mtime - b.stat.mtime) // 古いものを上に
+    .sort((a, b) => getBaseTime(app, a) - getBaseTime(app, b)) // 古いものを上に
     .map((f) => {
-      const days = Math.floor((now - f.stat.mtime) / (24 * 60 * 60 * 1000));
+      const days = Math.floor((now - getBaseTime(app, f)) / (24 * 60 * 60 * 1000));
       return `- [[${f.basename}]] (${days}日経過)`;
     })
     .join("\n");
@@ -46,7 +56,7 @@ export async function updateDecayList(
   if (!rootFile) return;
 
   const decayedFiles = detectDecayedNotes(app, settings);
-  const section = buildDecaySection(decayedFiles);
+  const section = buildDecaySection(decayedFiles, app);
   const content = await app.vault.read(rootFile);
 
   let newContent: string;

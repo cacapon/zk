@@ -93,9 +93,13 @@ export default class ZkPlugin extends Plugin {
         }
 
         if (file.path === this.settings.tempRootPath) {
-          updateDecayList(this.app, this.settings);
+          await updateDecayList(this.app, this.settings);
         }
-        if (this.settings.enableBacklinks && (isInCoreOrRef(file.path, this.settings) || isInSrc(file.path, this.settings))) {
+        if (this.settings.enableBacklinks && (
+          isInCoreOrRef(file.path, this.settings) ||
+          isInSrc(file.path, this.settings) ||
+          file.path === this.settings.tempRootPath
+        )) {
           await updateBacklinksOf(this.app, file, this.settings.backlinkExcludePatterns);
         }
         if (isInSrc(file.path, this.settings)) {

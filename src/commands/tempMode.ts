@@ -25,7 +25,8 @@ export async function createTempNote(
   }
 
   const createdDate = new Date().toISOString().split("T")[0];
-  const content = buildTempNote(createdDate);
+  const rootName = settings.tempRootPath.split("/").pop()!.replace(/\.md$/, "");
+  const content = buildTempNote(createdDate, rootName);
   const uniqueTitle = resolveUniqueTitle(app, folderPath, title);
 
   const newFile = await app.vault.create(`${folderPath}/${uniqueTitle}.md`, content);
