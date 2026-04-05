@@ -98,6 +98,7 @@ export default class ZkPlugin extends Plugin {
         if (this.settings.enableBacklinks && (
           isInCoreOrRef(file.path, this.settings) ||
           isInSrc(file.path, this.settings) ||
+          file.path === this.settings.srcRootPath ||
           file.path === this.settings.tempRootPath
         )) {
           await updateBacklinksOf(this.app, file, this.settings.backlinkExcludePatterns);

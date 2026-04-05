@@ -58,6 +58,8 @@ export const DEFAULT_SRC_ROOT_TEMPLATE = `# Src
 書籍・論文・記事など外部知識の参考文献ノート。
 Refノートの起点となり、ここから参照箇所（Ref）を派生させる。
 
+関連: [[{{refRoot}}]]
+
 ## Srcノートとは
 - 書籍・論文・記事などを表すノート
 - BookSearchプラグインで作成する
@@ -119,6 +121,8 @@ export const DEFAULT_REF_ROOT_TEMPLATE = `# Ref
 
 外部情報（書籍・論文・記事など）への参照を記録するノート。
 SrcノートをもとにRefノートを作成し、参照箇所・引用・要約を書く。
+
+関連: [[{{srcRoot}}]]
 
 ## Refノートとは
 - Srcノート（参考文献）に紐づく参照箇所のノート

@@ -5,6 +5,7 @@ import { ModeSuggestModal } from "../ui/modeSuggest";
 import { ZkSettings } from "../settings";
 import {
   loadOrCreateTemplate,
+  applyPlaceholders,
   DEFAULT_CORE_ROOT_TEMPLATE,
   DEFAULT_REF_ROOT_TEMPLATE,
   DEFAULT_TEMP_ROOT_TEMPLATE,
@@ -18,10 +19,17 @@ function getRootPath(mode: Mode, settings: ZkSettings): string {
   }
 }
 
+function rootBasename(rootPath: string): string {
+  return rootPath.split("/").pop()!.replace(/\.md$/, "");
+}
+
 function getRootTemplate(mode: Mode, settings: ZkSettings): { templatePath: string; defaultContent: string } | null {
   switch (mode) {
     case "Core": return { templatePath: settings.coreRootTemplatePath, defaultContent: DEFAULT_CORE_ROOT_TEMPLATE };
-    case "Ref":  return { templatePath: settings.refRootTemplatePath,  defaultContent: DEFAULT_REF_ROOT_TEMPLATE };
+    case "Ref":  return {
+      templatePath: settings.refRootTemplatePath,
+      defaultContent: applyPlaceholders(DEFAULT_REF_ROOT_TEMPLATE, { srcRoot: rootBasename(settings.srcRootPath) }),
+    };
     case "Temp": return { templatePath: settings.tempRootTemplatePath, defaultContent: DEFAULT_TEMP_ROOT_TEMPLATE };
   }
 }
