@@ -6,6 +6,8 @@ import { ObsidianEditor } from "./infra/obsidianEditor";
 import { createMode } from "./core/createMode";
 import { CreateModeModal } from "./ui/createModeModal";
 import { ModeSwitcher } from "./ui/modeSwitcher";
+import { ZettelNameModal } from "./ui/zettelNameModal";
+import { openOrCreateZettel } from "./core/openOrCreateZettel";
 import { DeleteModeModal } from "./ui/deleteModeModal";
 import { deleteMode } from "./core/deleteMode";
 import { ZkSettingTab } from "./ui/settingTab";
@@ -44,6 +46,32 @@ export default class ZkPlugin extends Plugin {
             this.currentMode.setMode(mode);
             await this.editor.openNote(mode.currPath);
           }
+        }).open();
+      },
+    });
+
+    this.addCommand({
+      id: "zk-open-or-create-zettel",
+      name: "Zettelを開く・作る",
+      callback: async () => {
+        const currentMode = this.currentMode.getMode();
+        if (!currentMode) {
+          new ModeSwitcher(this.app, this.modeList.getModes(), async (mode) => {
+            this.currentMode.setMode(mode);
+            await this.editor.openNote(mode.currPath);
+          }).open();
+          return;
+        }
+
+        const selection = this.editor.getSelection();
+        if (selection) {
+          this.editor.replaceSelection(`[[${selection}]]`);
+          await openOrCreateZettel(selection, currentMode, this.modeList, this.fs, this.editor);
+          return;
+        }
+
+        new ZettelNameModal(this.app, "", async (name) => {
+          await openOrCreateZettel(name, currentMode, this.modeList, this.fs, this.editor);
         }).open();
       },
     });

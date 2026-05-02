@@ -7,4 +7,13 @@ export class ObsidianEditor implements Editor {
   async openNote(path: string): Promise<void> {
     await this.workspace.openLinkText(path, "", true);
   }
+
+  getSelection(): string | null {
+    const selection = this.workspace.activeEditor?.editor?.getSelection();
+    return selection || null;
+  }
+
+  replaceSelection(text: string): void {
+    this.workspace.activeEditor?.editor?.replaceSelection(text);
+  }
 }
