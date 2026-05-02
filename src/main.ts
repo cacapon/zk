@@ -5,7 +5,7 @@ import { ObsidianFileSystem } from "./infra/obsidianFileSystem";
 import { ObsidianEditor } from "./infra/obsidianEditor";
 import { createMode } from "./core/createMode";
 import { CreateModeModal } from "./ui/createModeModal";
-import { ModeSwitcher } from "./ui/modeSwitcher";
+import { Switcher } from "./ui/switcher";
 import { ZettelNameModal } from "./ui/zettelNameModal";
 import { openOrCreateZettel } from "./core/openOrCreateZettel";
 import { DeleteModeModal } from "./ui/deleteModeModal";
@@ -31,28 +31,7 @@ export default class ZkPlugin extends Plugin {
     this.addCommand({
       id: "zk-create-mode",
       name: "モードを作成",
-      callback: () => {
-        new CreateModeModal(this.app, this.settings.defaultNoteFolder, this.settings.defaultTemplateFolder, async (input) => {
-          const ok = await createMode(
-            input.name,
-            input.dirPath,
-            input.tempPath,
-            this.modeList,
-            this.fs
-          );
-          if (!ok) {
-            // 同名モードが既に存在する場合
-            return;
-          }
-
-          const mode = this.modeList.getModes().find((m) => m.name === input.name);
-          if (mode) {
-            await this.saveAll();
-            this.currentMode.setMode(mode);
-            await this.editor.openNote(mode.currPath);
-          }
-        }).open();
-      },
+      callback: () => { this.openCreateModeModal(); },
     });
 
     this.addCommand({
@@ -61,10 +40,20 @@ export default class ZkPlugin extends Plugin {
       callback: async () => {
         const currentMode = this.currentMode.getMode();
         if (!currentMode) {
-          new ModeSwitcher(this.app, this.modeList.getModes(), async (mode) => {
-            this.currentMode.setMode(mode);
-            await this.editor.openNote(mode.currPath);
-          }).open();
+          new Switcher(this.app, [
+            ...this.modeList.getModes().map((mode) => ({
+              label: mode.name,
+              sub: mode.dirPath,
+              onChoose: async () => {
+                this.currentMode.setMode(mode);
+                await this.editor.openNote(mode.currPath);
+              },
+            })),
+            {
+              label: "+ 新しいモードを作成",
+              onChoose: () => { this.openCreateModeModal(); },
+            },
+          ]).open();
           return;
         }
 
@@ -96,12 +85,45 @@ export default class ZkPlugin extends Plugin {
       id: "zk-switch-mode",
       name: "モードを切り替え",
       callback: () => {
-        new ModeSwitcher(this.app, this.modeList.getModes(), async (mode) => {
-          this.currentMode.setMode(mode);
-          await this.editor.openNote(mode.currPath);
-        }).open();
+        new Switcher(this.app, [
+          ...this.modeList.getModes().map((mode) => ({
+            label: mode.name,
+            sub: mode.dirPath,
+            onChoose: async () => {
+              this.currentMode.setMode(mode);
+              await this.editor.openNote(mode.currPath);
+            },
+          })),
+          {
+            label: "+ 新しいモードを作成",
+            onChoose: () => { this.openCreateModeModal(); },
+          },
+        ]).open();
       },
     });
+  }
+
+  private openCreateModeModal(): void {
+    new CreateModeModal(this.app, this.settings.defaultNoteFolder, this.settings.defaultTemplateFolder, async (input) => {
+      const ok = await createMode(
+        input.name,
+        input.dirPath,
+        input.tempPath,
+        this.modeList,
+        this.fs
+      );
+      if (!ok) {
+        // 同名モードが既に存在する場合
+        return;
+      }
+
+      const mode = this.modeList.getModes().find((m) => m.name === input.name);
+      if (mode) {
+        await this.saveAll();
+        this.currentMode.setMode(mode);
+        await this.editor.openNote(mode.currPath);
+      }
+    }).open();
   }
 
   private async saveAll(): Promise<void> {
