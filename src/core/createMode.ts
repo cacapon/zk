@@ -9,7 +9,8 @@ export async function createMode(
   modeList: ModeList,
   fs: FileSystem
 ): Promise<boolean> {
-  const mode: Mode = { name, dirPath, tempPath, currPath: dirPath };
+  const rootPath = `${dirPath}/${name}.md`;
+  const mode: Mode = { name, dirPath, tempPath, currPath: rootPath };
 
   if (!modeList.addMode(mode)) {
     return false;
@@ -17,6 +18,10 @@ export async function createMode(
 
   if (!fs.exists(dirPath)) {
     await fs.createFolder(dirPath);
+  }
+
+  if (!fs.exists(rootPath)) {
+    await fs.createFile(rootPath, "");
   }
 
   if (!fs.exists(tempPath)) {

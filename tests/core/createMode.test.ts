@@ -32,9 +32,21 @@ describe("createMode", () => {
     expect(modeList.getModes().map((m) => m.name)).toContain("Core");
   });
 
-  it("currPathはdirPathと同じ値になる", async () => {
+  it("currPathはrootノートのパスになる", async () => {
     await createMode("Core", "/notes/Core", "/templates/Core.md", modeList, makeFs());
-    expect(modeList.getModes()[0].currPath).toBe("/notes/Core");
+    expect(modeList.getModes()[0].currPath).toBe("/notes/Core/Core.md");
+  });
+
+  it("rootノートが存在しない場合は空ファイルを作成する", async () => {
+    const fs = makeFs();
+    await createMode("Core", "/notes/Core", "/templates/Core.md", modeList, fs);
+    expect(fs.createFile).toHaveBeenCalledWith("/notes/Core/Core.md", "");
+  });
+
+  it("rootノートが既に存在する場合はファイルを作成しない", async () => {
+    const fs = makeFs(["/notes/Core/Core.md"]);
+    await createMode("Core", "/notes/Core", "/templates/Core.md", modeList, fs);
+    expect(fs.createFile).not.toHaveBeenCalledWith("/notes/Core/Core.md", "");
   });
 
   it("dirPathが存在しない場合はフォルダを作成する", async () => {
@@ -55,9 +67,9 @@ describe("createMode", () => {
     expect(fs.createFile).toHaveBeenCalledWith("/templates/Core.md", "");
   });
 
-  it("tempPathが既に存在する場合はファイルを作成しない", async () => {
+  it("tempPathが既に存在する場合はテンプレートファイルを作成しない", async () => {
     const fs = makeFs(["/templates/Core.md"]);
     await createMode("Core", "/notes/Core", "/templates/Core.md", modeList, fs);
-    expect(fs.createFile).not.toHaveBeenCalled();
+    expect(fs.createFile).not.toHaveBeenCalledWith("/templates/Core.md", "");
   });
 });
