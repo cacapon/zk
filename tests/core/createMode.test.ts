@@ -55,10 +55,22 @@ describe("createMode", () => {
     expect(fs.createFolder).toHaveBeenCalledWith("/notes/Core");
   });
 
-  it("dirPathが既に存在する場合はフォルダを作成しない", async () => {
+  it("dirPathが既に存在する場合はdirPathのフォルダを作成しない", async () => {
     const fs = makeFs(["/notes/Core"]);
     await createMode("Core", "/notes/Core", "/templates/Core.md", modeList, fs);
-    expect(fs.createFolder).not.toHaveBeenCalled();
+    expect(fs.createFolder).not.toHaveBeenCalledWith("/notes/Core");
+  });
+
+  it("tempPathの親フォルダが存在しない場合はフォルダを作成する", async () => {
+    const fs = makeFs();
+    await createMode("Core", "/notes/Core", "/templates/Core.md", modeList, fs);
+    expect(fs.createFolder).toHaveBeenCalledWith("/templates");
+  });
+
+  it("tempPathの親フォルダが既に存在する場合はフォルダを作成しない", async () => {
+    const fs = makeFs(["/templates"]);
+    await createMode("Core", "/notes/Core", "/templates/Core.md", modeList, fs);
+    expect(fs.createFolder).not.toHaveBeenCalledWith("/templates");
   });
 
   it("tempPathが存在しない場合は空ファイルを作成する", async () => {

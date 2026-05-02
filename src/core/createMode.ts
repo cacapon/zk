@@ -24,6 +24,11 @@ export async function createMode(
     await fs.createFile(rootPath, "");
   }
 
+  const tempDir = tempPath.includes("/") ? tempPath.split("/").slice(0, -1).join("/") : null;
+  if (tempDir && !fs.exists(tempDir)) {
+    await fs.createFolder(tempDir);
+  }
+
   if (!fs.exists(tempPath)) {
     await fs.createFile(tempPath, "");
   }
