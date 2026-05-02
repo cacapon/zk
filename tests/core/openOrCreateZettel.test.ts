@@ -12,10 +12,11 @@ const mode: Mode = {
   currPath: "/notes/Core/Core.md",
 };
 
-const makeFs = (existingPaths: string[] = []): FileSystem => ({
+const makeFs = (existingPaths: string[] = [], templateContent = ""): FileSystem => ({
   exists: (path) => existingPaths.includes(path),
   createFolder: vi.fn(),
   createFile: vi.fn(),
+  readFile: vi.fn().mockResolvedValue(templateContent),
 });
 
 const makeEditor = (): Editor => ({
@@ -33,6 +34,18 @@ describe("openOrCreateZettel", () => {
   });
 
   it("ノートが存在しない場合は作成する", async () => {
+    const fs = makeFs();
+    await openOrCreateZettel("NewNote", mode, modeList, fs, makeEditor());
+    expect(fs.createFile).toHaveBeenCalledWith("/notes/Core/NewNote.md", "");
+  });
+
+  it("テンプレートが存在する場合はその内容でノートを作成する", async () => {
+    const fs = makeFs(["/templates/Core.md"], "# {{title}}");
+    await openOrCreateZettel("NewNote", mode, modeList, fs, makeEditor());
+    expect(fs.createFile).toHaveBeenCalledWith("/notes/Core/NewNote.md", "# {{title}}");
+  });
+
+  it("テンプレートが存在しない場合は空ファイルを作成する", async () => {
     const fs = makeFs();
     await openOrCreateZettel("NewNote", mode, modeList, fs, makeEditor());
     expect(fs.createFile).toHaveBeenCalledWith("/notes/Core/NewNote.md", "");

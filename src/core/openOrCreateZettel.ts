@@ -13,7 +13,8 @@ export async function openOrCreateZettel(
   const path = `${mode.dirPath}/${name}.md`;
 
   if (!fs.exists(path)) {
-    await fs.createFile(path, "");
+    const content = fs.exists(mode.tempPath) ? await fs.readFile(mode.tempPath) : "";
+    await fs.createFile(path, content);
   }
 
   modeList.updateMode({ ...mode, currPath: path });

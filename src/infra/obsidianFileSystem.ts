@@ -1,4 +1,4 @@
-import { Vault } from "obsidian";
+import { TFile, Vault } from "obsidian";
 import { FileSystem } from "../core/fileSystem";
 
 export class ObsidianFileSystem implements FileSystem {
@@ -14,5 +14,13 @@ export class ObsidianFileSystem implements FileSystem {
 
   exists(path: string): boolean {
     return this.vault.getAbstractFileByPath(path) !== null;
+  }
+
+  async readFile(path: string): Promise<string> {
+    const file = this.vault.getAbstractFileByPath(path);
+    if (file instanceof TFile) {
+      return await this.vault.read(file);
+    }
+    return "";
   }
 }
