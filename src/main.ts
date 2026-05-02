@@ -6,6 +6,8 @@ import { ObsidianEditor } from "./infra/obsidianEditor";
 import { createMode } from "./core/createMode";
 import { CreateModeModal } from "./ui/createModeModal";
 import { ModeSwitcher } from "./ui/modeSwitcher";
+import { DeleteModeModal } from "./ui/deleteModeModal";
+import { deleteMode } from "./core/deleteMode";
 import { ZkSettingTab } from "./ui/settingTab";
 import { ZkSettings, DEFAULT_SETTINGS } from "./core/zkSettings";
 
@@ -42,6 +44,16 @@ export default class ZkPlugin extends Plugin {
             this.currentMode.setMode(mode);
             await this.editor.openNote(mode.currPath);
           }
+        }).open();
+      },
+    });
+
+    this.addCommand({
+      id: "zk-delete-mode",
+      name: "モードを削除",
+      callback: () => {
+        new DeleteModeModal(this.app, this.modeList.getModes(), (mode) => {
+          deleteMode(mode, this.modeList, this.currentMode);
         }).open();
       },
     });
