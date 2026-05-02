@@ -21,7 +21,7 @@ export default class ZkPlugin extends Plugin {
       id: "zk-create-mode",
       name: "モードを作成",
       callback: () => {
-        new CreateModeModal(this.app, this.settings.defaultTemplateFolder, async (input) => {
+        new CreateModeModal(this.app, this.settings.defaultNoteFolder, this.settings.defaultTemplateFolder, async (input) => {
           const ok = await createMode(
             input.name,
             input.dirPath,

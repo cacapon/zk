@@ -11,6 +11,17 @@ export class ZkSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     new Setting(containerEl)
+      .setName("デフォルトノートフォルダ")
+      .setDesc("モード作成時のフォルダパスの初期値に使われます")
+      .addText((t) => {
+        t.setPlaceholder("Zk")
+          .setValue(this.plugin.settings.defaultNoteFolder)
+          .onChange(async (v) => {
+            await this.plugin.updateSettings({ defaultNoteFolder: v.trim() });
+          });
+      });
+
+    new Setting(containerEl)
       .setName("デフォルトテンプレートフォルダ")
       .setDesc("モード作成時のテンプレートパスの初期値に使われます")
       .addText((t) => {

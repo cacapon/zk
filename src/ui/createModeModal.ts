@@ -10,10 +10,12 @@ export class CreateModeModal extends Modal {
   private name = "";
   private dirPath = "";
   private tempPath = "";
+  private dirPathManuallyChanged = false;
   private tempPathManuallyChanged = false;
 
   constructor(
     app: App,
+    private defaultNoteFolder: string,
     private defaultTemplateFolder: string,
     private onSubmit: (input: CreateModeInput) => void
   ) {
@@ -28,6 +30,7 @@ export class CreateModeModal extends Modal {
     errorEl.style.color = "var(--text-error)";
     errorEl.style.display = "none";
 
+    let dirText: TextComponent;
     let tempText: TextComponent;
 
     new Setting(contentEl)
@@ -36,13 +39,15 @@ export class CreateModeModal extends Modal {
       .addText((t) => {
         t.setPlaceholder("Core").onChange((v) => {
           this.name = v.trim();
-          if (!this.dirPath) {
-            this.dirPath = this.name;
+          if (!this.dirPathManuallyChanged) {
+            const autoDir = `${this.defaultNoteFolder}/${this.name}`;
+            this.dirPath = autoDir;
+            dirText.setValue(autoDir);
           }
           if (!this.tempPathManuallyChanged) {
-            const auto = `${this.defaultTemplateFolder}/${this.name}.md`;
-            this.tempPath = auto;
-            tempText.setValue(auto);
+            const autoTemp = `${this.defaultTemplateFolder}/${this.name}.md`;
+            this.tempPath = autoTemp;
+            tempText.setValue(autoTemp);
           }
         });
       });
@@ -51,8 +56,10 @@ export class CreateModeModal extends Modal {
       .setName("フォルダパス")
       .setDesc("ノートを保存するフォルダ")
       .addText((t) => {
-        t.setPlaceholder("Notes/Core").onChange((v) => {
+        dirText = t;
+        t.setValue(`${this.defaultNoteFolder}/`).onChange((v) => {
           this.dirPath = v.trim();
+          this.dirPathManuallyChanged = true;
         });
       });
 
