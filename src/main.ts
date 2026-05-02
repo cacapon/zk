@@ -25,6 +25,13 @@ export default class ZkPlugin extends Plugin {
           );
           if (!ok) {
             // 同名モードが既に存在する場合
+            return;
+          }
+
+          const mode = this.modeList.getModes().find((m) => m.name === input.name);
+          if (mode) {
+            this.currentMode.setMode(mode);
+            await this.app.workspace.openLinkText(mode.currPath, "", true);
           }
         }).open();
       },
