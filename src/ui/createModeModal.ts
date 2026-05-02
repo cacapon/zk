@@ -75,7 +75,8 @@ export class CreateModeModal extends Modal {
         }
 
         const dirPath = this.dirPath || this.name;
-        const tempPath = this.tempPath || `Templates/${this.name}.md`;
+        const rawTempPath = this.tempPath || `Templates/${this.name}.md`;
+        const tempPath = rawTempPath.endsWith(".md") ? rawTempPath : `${rawTempPath}.md`;
 
         this.close();
         this.onSubmit({ name: this.name, dirPath, tempPath });
