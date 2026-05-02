@@ -13,6 +13,7 @@ export class CreateModeModal extends Modal {
 
   constructor(
     app: App,
+    private defaultTemplateFolder: string,
     private onSubmit: (input: CreateModeInput) => void
   ) {
     super(app);
@@ -36,7 +37,7 @@ export class CreateModeModal extends Modal {
             this.dirPath = this.name;
           }
           if (!this.tempPath) {
-            this.tempPath = `Templates/${this.name}.md`;
+            this.tempPath = `${this.defaultTemplateFolder}/${this.name}.md`;
           }
         });
       });
@@ -75,7 +76,7 @@ export class CreateModeModal extends Modal {
         }
 
         const dirPath = this.dirPath || this.name;
-        const rawTempPath = this.tempPath || `Templates/${this.name}.md`;
+        const rawTempPath = this.tempPath || `${this.defaultTemplateFolder}/${this.name}.md`;
         const tempPath = rawTempPath.endsWith(".md") ? rawTempPath : `${rawTempPath}.md`;
 
         this.close();
