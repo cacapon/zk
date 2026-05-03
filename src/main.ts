@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Plugin, setIcon } from "obsidian";
 import { ModeList } from "./core/modeList";
 import { CurrentMode } from "./core/currentMode";
 import { ObsidianFileSystem } from "./infra/obsidianFileSystem";
@@ -22,6 +22,7 @@ export default class ZkPlugin extends Plugin {
   private editor = new ObsidianEditor(this.app.workspace);
   private notifier = new ObsidianNotifier();
   private metadataCache = new ObsidianMetadataCache(this.app.metadataCache);
+  private statusBarEl = this.addStatusBarItem();
   settings!: ZkSettings;
 
   async onload(): Promise<void> {
@@ -52,6 +53,7 @@ export default class ZkPlugin extends Plugin {
                 this.currentMode.setMode(mode);
                 await this.editor.openNote(mode.currPath);
                 this.notifier.notify(`「${mode.name}」に切り替えました`);
+                this.updateStatusBar();
               },
             })),
             {
@@ -85,6 +87,7 @@ export default class ZkPlugin extends Plugin {
           deleteMode(mode, this.modeList, this.currentMode);
           await this.saveAll();
           this.notifier.notify(`「${mode.name}」を削除しました`);
+          this.updateStatusBar();
         }).open();
       },
     });
@@ -101,6 +104,7 @@ export default class ZkPlugin extends Plugin {
               this.currentMode.setMode(mode);
               await this.editor.openNote(mode.currPath);
               this.notifier.notify(`「${mode.name}」に切り替えました`);
+              this.updateStatusBar();
             },
           })),
           {
@@ -121,7 +125,8 @@ export default class ZkPlugin extends Plugin {
         this.modeList,
         this.fs,
         this.metadataCache,
-        input.prefix
+        input.prefix,
+        input.icon
       );
       if (!ok) {
         this.notifier.notify(`「${input.name}」は既に存在します`);
@@ -134,6 +139,7 @@ export default class ZkPlugin extends Plugin {
         this.currentMode.setMode(mode);
         await this.editor.openNote(mode.currPath);
         this.notifier.notify(`「${input.name}」を作成しました`);
+        this.updateStatusBar();
       }
     }).open();
   }
@@ -145,5 +151,17 @@ export default class ZkPlugin extends Plugin {
   async updateSettings(patch: Partial<ZkSettings>): Promise<void> {
     Object.assign(this.settings, patch);
     await this.saveAll();
+  }
+
+  updateStatusBar(): void {
+    const mode = this.currentMode.getMode();
+    this.statusBarEl.empty();
+    if (mode) {
+      if (mode.icon) {
+        const iconEl = this.statusBarEl.createSpan();
+        setIcon(iconEl, mode.icon);
+      }
+      this.statusBarEl.createSpan({ text: (mode.icon ? " " : "") + mode.name });
+    }
   }
 }

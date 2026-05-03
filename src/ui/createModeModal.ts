@@ -1,10 +1,12 @@
-import { App, Modal, Setting, TextComponent } from "obsidian";
+import { App, Modal, Setting, TextComponent, setIcon } from "obsidian";
+import { IconPickerModal } from "./iconPickerModal";
 
 export interface CreateModeInput {
   name: string;
   dirPath: string;
   tempPath: string;
   prefix: string;
+  icon: string;
 }
 
 export class CreateModeModal extends Modal {
@@ -12,6 +14,7 @@ export class CreateModeModal extends Modal {
   private dirPath = "";
   private tempPath = "";
   private prefix = "";
+  private icon = "lucide-notepad-text";
   private dirPathManuallyChanged = false;
   private tempPathManuallyChanged = false;
 
@@ -44,7 +47,7 @@ export class CreateModeModal extends Modal {
       const tempPath = rawTempPath.endsWith(".md") ? rawTempPath : `${rawTempPath}.md`;
 
       this.close();
-      this.onSubmit({ name: this.name, dirPath, tempPath, prefix: this.prefix });
+      this.onSubmit({ name: this.name, dirPath, tempPath, prefix: this.prefix, icon: this.icon });
     };
 
     let dirText: TextComponent;
@@ -53,6 +56,20 @@ export class CreateModeModal extends Modal {
     new Setting(contentEl)
       .setName("モード名")
       .setDesc("表示名（例: Core, Temp）")
+      .addButton((btn) => {
+        btn.setTooltip("アイコンを選択").onClick(() => {
+          new IconPickerModal(this.app, (iconId) => {
+            this.icon = iconId;
+            btn.buttonEl.empty();
+            if (iconId) {
+              setIcon(btn.buttonEl, iconId);
+            } else {
+              btn.buttonEl.setText("(なし)");
+            }
+          }).open();
+        });
+        setIcon(btn.buttonEl, "lucide-notepad-text");
+      })
       .addText((t) => {
         t.setPlaceholder("Core").onChange((v) => {
           this.name = v.trim();

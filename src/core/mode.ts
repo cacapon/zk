@@ -4,4 +4,5 @@ export interface Mode {
   tempPath: string;
   currPath: string;
   prefix?: string;
+  icon?: string;
 }

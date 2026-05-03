@@ -20,10 +20,11 @@ export async function createMode(
   modeList: ModeList,
   fs: FileSystem,
   metadataCache: MetadataCache,
-  prefix = ""
+  prefix = "",
+  icon = ""
 ): Promise<boolean> {
   const rootPath = `${dirPath}/${name}.md`;
-  const mode: Mode = { name, dirPath, tempPath, currPath: rootPath, prefix };
+  const mode: Mode = { name, dirPath, tempPath, currPath: rootPath, prefix, icon };
 
   if (!modeList.addMode(mode)) {
     return false;
