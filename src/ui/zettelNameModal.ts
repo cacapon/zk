@@ -35,7 +35,7 @@ export class ZettelNameModal extends Modal {
         t.setValue(this.initialName)
           .onChange((v) => { this.name = v.trim(); });
         t.inputEl.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") submit();
+          if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); submit(); }
         });
       });
 

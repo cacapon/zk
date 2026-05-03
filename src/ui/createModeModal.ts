@@ -66,7 +66,7 @@ export class CreateModeModal extends Modal {
           }
         });
         t.inputEl.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") submit();
+          if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); submit(); }
         });
       });
 

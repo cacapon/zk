@@ -13,7 +13,7 @@ export class ObsidianFileSystem implements FileSystem {
   }
 
   exists(path: string): boolean {
-    return this.vault.getAbstractFileByPath(path) !== null;
+    return this.vault.getFiles().some((f) => f.path === path);
   }
 
   async readFile(path: string): Promise<string> {
