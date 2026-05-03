@@ -1,16 +1,29 @@
 import { Mode } from "./mode";
 import { ModeList } from "./modeList";
 import { FileSystem } from "./fileSystem";
+import { MetadataCache } from "./metadataCache";
+import { genUniqueID, genUniqueAlias } from "./idGenerator";
+import defaultTemplate from "./templates/defaultTemplate.md";
+import rootTemplate from "./templates/rootTemplate.md";
+
+function applyId(template: string, prefix: string, existingIds: string[], existingAliases: string[]): string {
+  if (!template.includes("{{zkid}}")) return template;
+  const id = genUniqueID(prefix, 15, existingIds);
+  const alias = genUniqueAlias(id, 4, existingAliases) ?? id;
+  return template.replace("{{zkid}}", id).replace("{{alias}}", alias);
+}
 
 export async function createMode(
   name: string,
   dirPath: string,
   tempPath: string,
   modeList: ModeList,
-  fs: FileSystem
+  fs: FileSystem,
+  metadataCache: MetadataCache,
+  prefix = ""
 ): Promise<boolean> {
   const rootPath = `${dirPath}/${name}.md`;
-  const mode: Mode = { name, dirPath, tempPath, currPath: rootPath };
+  const mode: Mode = { name, dirPath, tempPath, currPath: rootPath, prefix };
 
   if (!modeList.addMode(mode)) {
     return false;
@@ -21,7 +34,9 @@ export async function createMode(
   }
 
   if (!fs.exists(rootPath)) {
-    await fs.createFile(rootPath, "");
+    const ids = metadataCache.getIds(dirPath);
+    const aliases = metadataCache.getAliases(dirPath);
+    await fs.createFile(rootPath, applyId(rootTemplate, prefix, ids, aliases));
   }
 
   const tempDir = tempPath.includes("/") ? tempPath.split("/").slice(0, -1).join("/") : null;
@@ -30,7 +45,7 @@ export async function createMode(
   }
 
   if (!fs.exists(tempPath)) {
-    await fs.createFile(tempPath, "");
+    await fs.createFile(tempPath, defaultTemplate);
   }
 
   return true;

@@ -3,4 +3,5 @@ export interface Mode {
   dirPath: string;
   tempPath: string;
   currPath: string;
+  prefix?: string;
 }

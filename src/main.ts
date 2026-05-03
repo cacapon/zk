@@ -4,6 +4,7 @@ import { CurrentMode } from "./core/currentMode";
 import { ObsidianFileSystem } from "./infra/obsidianFileSystem";
 import { ObsidianEditor } from "./infra/obsidianEditor";
 import { ObsidianNotifier } from "./infra/obsidianNotifier";
+import { ObsidianMetadataCache } from "./infra/obsidianMetadataCache";
 import { createMode } from "./core/createMode";
 import { CreateModeModal } from "./ui/createModeModal";
 import { Switcher } from "./ui/switcher";
@@ -20,6 +21,7 @@ export default class ZkPlugin extends Plugin {
   private fs = new ObsidianFileSystem(this.app.vault);
   private editor = new ObsidianEditor(this.app.workspace);
   private notifier = new ObsidianNotifier();
+  private metadataCache = new ObsidianMetadataCache(this.app.metadataCache);
   settings!: ZkSettings;
 
   async onload(): Promise<void> {
@@ -63,13 +65,13 @@ export default class ZkPlugin extends Plugin {
         const selection = this.editor.getSelection();
         if (selection) {
           this.editor.replaceSelection(`[[${selection}]]`);
-          const created = await openOrCreateZettel(selection, currentMode, this.modeList, this.fs, this.editor);
+          const created = await openOrCreateZettel(selection, currentMode, this.modeList, this.fs, this.editor, this.metadataCache);
           if (created) this.notifier.notify(`「${selection}」を作成しました`);
           return;
         }
 
         new ZettelNameModal(this.app, "", async (name) => {
-          const created = await openOrCreateZettel(name, currentMode, this.modeList, this.fs, this.editor);
+          const created = await openOrCreateZettel(name, currentMode, this.modeList, this.fs, this.editor, this.metadataCache);
           if (created) this.notifier.notify(`「${name}」を作成しました`);
         }).open();
       },
@@ -117,7 +119,9 @@ export default class ZkPlugin extends Plugin {
         input.dirPath,
         input.tempPath,
         this.modeList,
-        this.fs
+        this.fs,
+        this.metadataCache,
+        input.prefix
       );
       if (!ok) {
         this.notifier.notify(`「${input.name}」は既に存在します`);

@@ -1,0 +1,4 @@
+---
+zkid: "{{zkid}}"
+aliases: ["{{alias}}"]
+---

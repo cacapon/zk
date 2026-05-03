@@ -23,6 +23,7 @@ const context = await esbuild.context({
     "@lezer/lr",
     ...builtins,
   ],
+  loader: { ".md": "text" },
   format: "cjs",
   target: "es2022",
   logLevel: "info",

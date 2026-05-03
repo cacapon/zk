@@ -4,12 +4,14 @@ export interface CreateModeInput {
   name: string;
   dirPath: string;
   tempPath: string;
+  prefix: string;
 }
 
 export class CreateModeModal extends Modal {
   private name = "";
   private dirPath = "";
   private tempPath = "";
+  private prefix = "";
   private dirPathManuallyChanged = false;
   private tempPathManuallyChanged = false;
 
@@ -42,7 +44,7 @@ export class CreateModeModal extends Modal {
       const tempPath = rawTempPath.endsWith(".md") ? rawTempPath : `${rawTempPath}.md`;
 
       this.close();
-      this.onSubmit({ name: this.name, dirPath, tempPath });
+      this.onSubmit({ name: this.name, dirPath, tempPath, prefix: this.prefix });
     };
 
     let dirText: TextComponent;
@@ -68,6 +70,13 @@ export class CreateModeModal extends Modal {
         t.inputEl.addEventListener("keydown", (e) => {
           if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); submit(); }
         });
+      });
+
+    new Setting(contentEl)
+      .setName("IDプレフィックス")
+      .setDesc("ノートIDの先頭に付ける文字（例: C → Ca3f9x2...）。空欄でも可。")
+      .addText((t) => {
+        t.setPlaceholder("C").onChange((v) => { this.prefix = v.trim(); });
       });
 
     new Setting(contentEl)

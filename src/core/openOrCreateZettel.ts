@@ -2,19 +2,27 @@ import { Mode } from "./mode";
 import { ModeList } from "./modeList";
 import { FileSystem } from "./fileSystem";
 import { Editor } from "./editor";
+import { MetadataCache } from "./metadataCache";
+import { genUniqueID, genUniqueAlias } from "./idGenerator";
 
 export async function openOrCreateZettel(
   name: string,
   mode: Mode,
   modeList: ModeList,
   fs: FileSystem,
-  editor: Editor
+  editor: Editor,
+  metadataCache: MetadataCache
 ): Promise<boolean> {
   const path = `${mode.dirPath}/${name}.md`;
   const created = !fs.exists(path);
 
   if (created) {
-    const content = fs.exists(mode.tempPath) ? await fs.readFile(mode.tempPath) : "";
+    let content = fs.exists(mode.tempPath) ? await fs.readFile(mode.tempPath) : "";
+    if (content.includes("{{zkid}}")) {
+      const id = genUniqueID(mode.prefix ?? "", 15, metadataCache.getIds(mode.dirPath));
+      const alias = genUniqueAlias(id, 4, metadataCache.getAliases(mode.dirPath)) ?? id;
+      content = content.replace("{{zkid}}", id).replace("{{alias}}", alias);
+    }
     await fs.createFile(path, content);
   }
 
