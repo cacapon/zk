@@ -39,13 +39,15 @@ describe("deleteMode", () => {
     modeList.addMode(makeMode("Core"));
     currentMode.setMode(makeMode("Core"));
     deleteMode(makeMode("Core"), modeList, currentMode);
-    expect(currentMode.getMode()).toBeNull();
+    expect(currentMode.getMode(modeList)).toBeNull();
   });
 
   it("削除したモードと別のモードがCurrentModeに設定されていた場合はそのまま", () => {
+    const temp = makeMode("Temp");
     modeList.addMode(makeMode("Core"));
-    currentMode.setMode(makeMode("Temp"));
+    modeList.addMode(temp);
+    currentMode.setMode(temp);
     deleteMode(makeMode("Core"), modeList, currentMode);
-    expect(currentMode.getMode()?.name).toBe("Temp");
+    expect(currentMode.getMode(modeList)?.name).toBe("Temp");
   });
 });

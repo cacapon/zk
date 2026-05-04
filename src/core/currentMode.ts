@@ -1,17 +1,19 @@
 import { Mode } from "./mode";
+import { ModeList } from "./modeList";
 
 export class CurrentMode {
-  private mode: Mode | null = null;
+  private name: string | null = null;
 
   setMode(mode: Mode): void {
-    this.mode = mode;
+    this.name = mode.name;
   }
 
-  getMode(): Mode | null {
-    return this.mode;
+  getMode(modeList: ModeList): Mode | null {
+    if (this.name === null) return null;
+    return modeList.getModes().find((m) => m.name === this.name) ?? null;
   }
 
   clearMode(): void {
-    this.mode = null;
+    this.name = null;
   }
 }

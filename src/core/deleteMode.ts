@@ -8,7 +8,7 @@ export function deleteMode(
   currentMode: CurrentMode
 ): boolean {
   const result = modeList.deleteMode(mode);
-  if (result && currentMode.getMode()?.name === mode.name) {
+  if (result && currentMode.getMode(modeList)?.name === mode.name) {
     currentMode.clearMode();
   }
   return result;
