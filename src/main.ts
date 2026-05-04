@@ -16,6 +16,7 @@ import { deleteMode } from "./core/deleteMode";
 import { renameMode } from "./core/renameMode";
 import { ZkSettingTab } from "./ui/settingTab";
 import { ZkSettings, DEFAULT_SETTINGS } from "./core/zkSettings";
+import { extractLinks } from "./core/linkParser";
 
 export default class ZkPlugin extends Plugin {
   private modeList = new ModeList();
@@ -74,6 +75,12 @@ export default class ZkPlugin extends Plugin {
           return;
         }
 
+        const cursorLink = this.editor.getCursorLinkTarget();
+        if (cursorLink) {
+          await this.editor.openNote(cursorLink);
+          return;
+        }
+
         new ZettelNameModal(this.app, "", async (name) => {
           const created = await openOrCreateZettel(name, currentMode, this.modeList, this.fs, this.editor, this.metadataCache);
           if (created) this.notifier.notify(`「${name}」を作成しました`);
@@ -91,6 +98,25 @@ export default class ZkPlugin extends Plugin {
           this.notifier.notify(`「${mode.name}」を削除しました`);
           this.updateStatusBar();
         }).open();
+      },
+    });
+
+    this.addCommand({
+      id: "zk-link-switcher",
+      name: "リンクを切り替え",
+      callback: async () => {
+        const filePath = this.editor.getActiveFilePath();
+        if (!filePath) return;
+        const content = await this.fs.readFile(filePath);
+        const links = extractLinks(content);
+        if (links.length === 0) {
+          this.notifier.notify("リンクが見つかりません");
+          return;
+        }
+        new Switcher(this.app, links.map((link) => ({
+          label: link,
+          onChoose: async () => { await this.editor.openNote(link); },
+        }))).open();
       },
     });
 

@@ -1,11 +1,13 @@
 import { Workspace } from "obsidian";
 import { Editor } from "../core/editor";
+import { parseLinkAtCursor } from "../core/linkParser";
 
 export class ObsidianEditor implements Editor {
   constructor(private workspace: Workspace) {}
 
   async openNote(path: string): Promise<void> {
-    await this.workspace.openLinkText(path, "", false);
+    const sourcePath = this.workspace.getActiveFile()?.path ?? "";
+    await this.workspace.openLinkText(path, sourcePath, false);
   }
 
   getSelection(): string | null {
@@ -19,5 +21,13 @@ export class ObsidianEditor implements Editor {
 
   getActiveFilePath(): string | null {
     return this.workspace.getActiveFile()?.path ?? null;
+  }
+
+  getCursorLinkTarget(): string | null {
+    const editor = this.workspace.activeEditor?.editor;
+    if (!editor) return null;
+    const cursor = editor.getCursor();
+    const line = editor.getLine(cursor.line);
+    return parseLinkAtCursor(line, cursor.ch);
   }
 }

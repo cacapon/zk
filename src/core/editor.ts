@@ -3,4 +3,5 @@ export interface Editor {
   getSelection(): string | null;
   replaceSelection(text: string): void;
   getActiveFilePath(): string | null;
+  getCursorLinkTarget(): string | null;
 }
