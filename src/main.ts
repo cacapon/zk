@@ -1,4 +1,5 @@
 import { Plugin, setIcon } from "obsidian";
+import { Mode } from "./core/mode";
 import { ModeList } from "./core/modeList";
 import { CurrentMode } from "./core/currentMode";
 import { ObsidianFileSystem } from "./infra/obsidianFileSystem";
@@ -43,7 +44,7 @@ export default class ZkPlugin extends Plugin {
       id: "zk-open-or-create-zettel",
       name: "Zettelを開く・作る",
       callback: async () => {
-        const currentMode = this.currentMode.getMode();
+        const currentMode = this.currentMode.getMode(this.modeList);
         if (!currentMode) {
           new Switcher(this.app, [
             ...this.modeList.getModes().map((mode) => ({
@@ -153,8 +154,20 @@ export default class ZkPlugin extends Plugin {
     await this.saveAll();
   }
 
+  getModes() {
+    return this.modeList.getModes();
+  }
+
+  async updateModeConfig(name: string, patch: Pick<Mode, "icon" | "prefix">): Promise<void> {
+    const mode = this.modeList.getModes().find((m) => m.name === name);
+    if (!mode) return;
+    this.modeList.updateMode({ ...mode, ...patch });
+    await this.saveAll();
+    this.updateStatusBar();
+  }
+
   updateStatusBar(): void {
-    const mode = this.currentMode.getMode();
+    const mode = this.currentMode.getMode(this.modeList);
     this.statusBarEl.empty();
     if (mode) {
       if (mode.icon) {
