@@ -37,9 +37,9 @@ jobs:
         run: |
           PREV_TAG=$(git tag --sort=-version:refname | sed -n '2p')
           if [ -z "$PREV_TAG" ]; then
-            NOTES=$(git log --pretty=format:"- %s" | grep -v "^- chore: bump version")
+            NOTES=$(git log --pretty=format:"- %s" | grep -v "^- chore: bump version" || true)
           else
-            NOTES=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s" | grep -v "^- chore: bump version")
+            NOTES=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s" | grep -v "^- chore: bump version" || true)
           fi
           echo "notes<<EOF" >> $GITHUB_OUTPUT
           echo "$NOTES" >> $GITHUB_OUTPUT
