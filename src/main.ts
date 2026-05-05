@@ -55,9 +55,9 @@ export default class ZkPlugin extends Plugin {
               sub: mode.dirPath,
               onChoose: async () => {
                 this.currentMode.setMode(mode);
-                await this.editor.openNote(mode.currPath);
                 this.notifier.notify(`「${mode.name}」に切り替えました`);
                 this.updateStatusBar();
+                await this.openZettelFlow(mode);
               },
             })),
             {
@@ -68,24 +68,7 @@ export default class ZkPlugin extends Plugin {
           return;
         }
 
-        const selection = this.editor.getSelection();
-        if (selection) {
-          this.editor.replaceSelection(`[[${selection}]]`);
-          const created = await openOrCreateZettel(selection, currentMode, this.modeList, this.fs, this.editor, this.metadataCache);
-          if (created) this.notifier.notify(`「${selection}」を作成しました`);
-          return;
-        }
-
-        const cursorLink = this.editor.getCursorLinkTarget();
-        if (cursorLink) {
-          await this.editor.openNote(cursorLink);
-          return;
-        }
-
-        new ZettelNameModal(this.app, "", async (name) => {
-          const created = await openOrCreateZettel(name, currentMode, this.modeList, this.fs, this.editor, this.metadataCache);
-          if (created) this.notifier.notify(`「${name}」を作成しました`);
-        }).open();
+        await this.openZettelFlow(currentMode);
       },
     });
 
@@ -171,6 +154,27 @@ export default class ZkPlugin extends Plugin {
         this.notifier.notify(`「${input.name}」を作成しました`);
         this.updateStatusBar();
       }
+    }).open();
+  }
+
+  private async openZettelFlow(mode: Mode): Promise<void> {
+    const selection = this.editor.getSelection();
+    if (selection) {
+      this.editor.replaceSelection(`[[${selection}]]`);
+      const created = await openOrCreateZettel(selection, mode, this.modeList, this.fs, this.editor, this.metadataCache);
+      if (created) this.notifier.notify(`「${selection}」を作成しました`);
+      return;
+    }
+
+    const cursorLink = this.editor.getCursorLinkTarget();
+    if (cursorLink) {
+      await this.editor.openNote(cursorLink);
+      return;
+    }
+
+    new ZettelNameModal(this.app, "", async (name) => {
+      const created = await openOrCreateZettel(name, mode, this.modeList, this.fs, this.editor, this.metadataCache);
+      if (created) this.notifier.notify(`「${name}」を作成しました`);
     }).open();
   }
 
