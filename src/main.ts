@@ -86,6 +86,19 @@ export default class ZkPlugin extends Plugin {
     });
 
     this.addCommand({
+      id: "zk-go-to-root",
+      name: "rootノートに戻る",
+      callback: async () => {
+        const mode = this.currentMode.getMode(this.modeList);
+        if (!mode) {
+          this.notifier.notify("モードが選択されていません");
+          return;
+        }
+        await this.editor.openNote(mode.currPath);
+      },
+    });
+
+    this.addCommand({
       id: "zk-link-switcher",
       name: "リンクを切り替え",
       callback: async () => {
