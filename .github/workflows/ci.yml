@@ -43,8 +43,15 @@ jobs:
           else
             NOTES=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s" | grep -v "^- chore: bump version" || true)
           fi
+          if [ -n "$PREV_TAG" ]; then
+            CHANGELOG="**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${GITHUB_REF_NAME}"
+          fi
           echo "notes<<EOF" >> $GITHUB_OUTPUT
           echo "$NOTES" >> $GITHUB_OUTPUT
+          if [ -n "$CHANGELOG" ]; then
+            echo "" >> $GITHUB_OUTPUT
+            echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          fi
           echo "EOF" >> $GITHUB_OUTPUT
       - uses: softprops/action-gh-release@v2
         with:
