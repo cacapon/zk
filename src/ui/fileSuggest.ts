@@ -1,12 +1,15 @@
 import { AbstractInputSuggest, App, TFile } from "obsidian";
 
 export class FileSuggest extends AbstractInputSuggest<TFile> {
+  private el: HTMLInputElement;
+
   constructor(
     app: App,
     inputEl: HTMLInputElement,
     private folderPath: string
   ) {
     super(app, inputEl);
+    this.el = inputEl;
   }
 
   getSuggestions(query: string): TFile[] {
@@ -24,6 +27,7 @@ export class FileSuggest extends AbstractInputSuggest<TFile> {
 
   selectSuggestion(file: TFile): void {
     this.setValue(file.path);
+    this.el.dispatchEvent(new Event("input"));
     this.close();
   }
 }

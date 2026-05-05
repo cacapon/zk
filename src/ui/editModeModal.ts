@@ -72,8 +72,11 @@ export class EditModeModal extends Modal {
       .setName("テンプレートパス")
       .setDesc("新規ノート作成時に使うテンプレートファイル")
       .addText((t) => {
-        t.setValue(this.tempPath).onChange((v) => { this.tempPath = v.trim(); });
-        if (this.templateFolderPath) {
+        t.setValue(this.tempPath);
+        t.inputEl.addEventListener("input", () => {
+          this.tempPath = t.inputEl.value.trim();
+        }, { capture: true });
+        if (this.templateFolderPath !== null) {
           new FileSuggest(this.app, t.inputEl, this.templateFolderPath);
         }
       });
