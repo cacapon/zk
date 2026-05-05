@@ -9,15 +9,23 @@ export interface SuggestionItem {
 export class Switcher extends SuggestModal<SuggestionItem> {
   constructor(
     app: App,
-    private items: SuggestionItem[]
+    private items: SuggestionItem[],
+    private dynamicItem?: (query: string, filtered: SuggestionItem[]) => SuggestionItem | null,
+    placeholder?: string
   ) {
     super(app);
+    if (placeholder) this.setPlaceholder(placeholder);
   }
 
   getSuggestions(query: string): SuggestionItem[] {
-    return this.items.filter((item) =>
+    const filtered = this.items.filter((item) =>
       item.label.toLowerCase().includes(query.toLowerCase())
     );
+    if (this.dynamicItem && query.trim()) {
+      const extra = this.dynamicItem(query.trim(), filtered);
+      if (extra) return [extra, ...filtered];
+    }
+    return filtered;
   }
 
   renderSuggestion(item: SuggestionItem, el: HTMLElement): void {

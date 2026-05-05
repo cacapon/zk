@@ -10,7 +10,6 @@ import { ObsidianMetadataCache } from "./infra/obsidianMetadataCache";
 import { createMode } from "./core/createMode";
 import { CreateModeModal } from "./ui/createModeModal";
 import { Switcher } from "./ui/switcher";
-import { ZettelNameModal } from "./ui/zettelNameModal";
 import { openOrCreateZettel } from "./core/openOrCreateZettel";
 import { DeleteModeModal } from "./ui/deleteModeModal";
 import { deleteMode } from "./core/deleteMode";
@@ -185,10 +184,21 @@ export default class ZkPlugin extends Plugin {
       return;
     }
 
-    new ZettelNameModal(this.app, "", async (name) => {
-      const created = await openOrCreateZettel(name, mode, this.modeList, this.fs, this.editor, this.metadataCache);
-      if (created) this.notifier.notify(`「${name}」を作成しました`);
-    }).open();
+    const fileItems = this.fs.listFiles(mode.dirPath).map((path) => ({
+      label: path.split("/").pop()?.replace(/\.md$/, "") ?? path,
+      onChoose: async () => { await this.editor.openNote(path); },
+    }));
+    new Switcher(this.app, fileItems, (query, filtered) => {
+      const exact = filtered.some((i) => i.label.toLowerCase() === query.toLowerCase());
+      if (exact) return null;
+      return {
+        label: `「${query}」を新規作成`,
+        onChoose: async () => {
+          const created = await openOrCreateZettel(query, mode, this.modeList, this.fs, this.editor, this.metadataCache);
+          if (created) this.notifier.notify(`「${query}」を作成しました`);
+        },
+      };
+    }, `「${mode.name}」のノート名を入力…`).open();
   }
 
   private async saveAll(): Promise<void> {
