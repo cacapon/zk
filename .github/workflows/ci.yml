@@ -37,7 +37,7 @@ jobs:
       - name: Generate release notes
         id: notes
         run: |
-          PREV_TAG=$(git tag --sort=-version:refname | sed -n '2p')
+          PREV_TAG=$(git tag --sort=-version:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | grep -v "^${GITHUB_REF_NAME}$" | head -1)
           if [ -z "$PREV_TAG" ]; then
             NOTES=$(git log --pretty=format:"- %s" | grep -v "^- chore: bump version" || true)
           else
