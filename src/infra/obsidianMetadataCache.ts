@@ -12,6 +12,16 @@ export class ObsidianMetadataCache implements MetadataCache {
     return this.getFrontmatterValues(dirPath, "aliases").flat();
   }
 
+  getForwardLinks(filePath: string): string[] {
+    return Object.keys(this.cache.resolvedLinks[filePath] ?? {});
+  }
+
+  getBacklinks(filePath: string): string[] {
+    return Object.entries(this.cache.resolvedLinks)
+      .filter(([_, links]) => filePath in links)
+      .map(([src]) => src);
+  }
+
   private getFrontmatterValues(dirPath: string, key: string): string[] {
     const results: string[] = [];
     const files = Object.keys(this.cache.resolvedLinks);

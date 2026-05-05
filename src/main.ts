@@ -17,7 +17,7 @@ import { deleteMode } from "./core/deleteMode";
 import { renameMode } from "./core/renameMode";
 import { ZkSettingTab } from "./ui/settingTab";
 import { ZkSettings, DEFAULT_SETTINGS } from "./core/zkSettings";
-import { extractLinks } from "./core/linkParser";
+import { getLinkSwitcherItems } from "./core/linkSwitcherItems";
 
 export default class ZkPlugin extends Plugin {
   private modeList = new ModeList();
@@ -91,15 +91,15 @@ export default class ZkPlugin extends Plugin {
       callback: async () => {
         const filePath = this.editor.getActiveFilePath();
         if (!filePath) return;
-        const content = await this.fs.readFile(filePath);
-        const links = extractLinks(content);
-        if (links.length === 0) {
+        const items = getLinkSwitcherItems(filePath, this.metadataCache);
+        if (items.length === 0) {
           this.notifier.notify("リンクが見つかりません");
           return;
         }
-        new Switcher(this.app, links.map((link) => ({
-          label: link,
-          onChoose: async () => { await this.editor.openNote(link); },
+        const typeLabel = { forward: "link", backlink: "backlink", "2step": "2step-link" };
+        new Switcher(this.app, items.map((item) => ({
+          label: `${item.path.split("/").pop()?.replace(/\.md$/, "") ?? item.path}  [${typeLabel[item.type]}]`,
+          onChoose: async () => { await this.editor.openNote(item.path); },
         }))).open();
       },
     });
