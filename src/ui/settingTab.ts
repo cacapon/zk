@@ -13,6 +13,16 @@ export class ZkSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     new Setting(containerEl)
+      .setName("モードの自動切り替え")
+      .setDesc("ファイルを開いたとき、そのファイルのモードに自動で切り替えます")
+      .addToggle((t) => {
+        t.setValue(this.plugin.settings.autoSwitchMode)
+          .onChange(async (v) => {
+            await this.plugin.updateSettings({ autoSwitchMode: v });
+          });
+      });
+
+    new Setting(containerEl)
       .setName("デフォルトノートフォルダ")
       .setDesc("モード作成時のフォルダパスの初期値に使われます")
       .addText((t) => {

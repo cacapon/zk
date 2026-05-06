@@ -36,6 +36,28 @@ export default class ZkPlugin extends Plugin {
     }
     this.addSettingTab(new ZkSettingTab(this.app, this));
 
+    this.registerEvent(this.app.workspace.on("active-leaf-change", () => {
+      if (!this.settings.autoSwitchMode) return;
+      const filePath = this.editor.getActiveFilePath();
+      if (!filePath) return;
+      const prevMode = this.currentMode.getMode(this.modeList);
+      const nextMode = this.modeList.getModes().find((m) => filePath.startsWith(m.dirPath + "/"));
+      if (nextMode) {
+        this.modeList.updateMode({ ...nextMode, currPath: filePath });
+        this.currentMode.setMode(nextMode);
+        if (prevMode?.name !== nextMode.name) {
+          this.notifier.notify(`「${nextMode.name}」に切り替えました`);
+        }
+      } else {
+        if (prevMode) {
+          this.currentMode.clearMode();
+          this.notifier.notify("モードなし");
+        }
+      }
+      this.updateStatusBar();
+      void this.saveAll();
+    }));
+
     this.addCommand({
       id: "zk-create-mode",
       name: "モードを作成",
