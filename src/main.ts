@@ -202,7 +202,13 @@ export default class ZkPlugin extends Plugin {
 
     const cursorLink = this.editor.getCursorLinkTarget();
     if (cursorLink) {
-      await this.editor.openNote(cursorLink);
+      const path = `${mode.dirPath}/${cursorLink}.md`;
+      if (this.fs.exists(path)) {
+        await this.editor.openNote(cursorLink);
+      } else {
+        const created = await openOrCreateZettel(cursorLink, mode, this.modeList, this.fs, this.editor, this.metadataCache);
+        if (created) this.notifier.notify(`「${cursorLink}」を作成しました`);
+      }
       return;
     }
 
