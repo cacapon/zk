@@ -22,6 +22,10 @@ export class ObsidianMetadataCache implements MetadataCache {
       .map(([src]) => src);
   }
 
+  resolveLink(linkText: string, sourcePath: string): string | null {
+    return this.cache.getFirstLinkpathDest(linkText, sourcePath)?.path ?? null;
+  }
+
   private getFrontmatterValues(dirPath: string, key: string): string[] {
     const results: string[] = [];
     const files = Object.keys(this.cache.resolvedLinks);

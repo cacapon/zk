@@ -202,8 +202,9 @@ export default class ZkPlugin extends Plugin {
 
     const cursorLink = this.editor.getCursorLinkTarget();
     if (cursorLink) {
-      const path = `${mode.dirPath}/${cursorLink}.md`;
-      if (this.fs.exists(path)) {
+      const sourcePath = this.editor.getActiveFilePath() ?? "";
+      const resolved = this.metadataCache.resolveLink(cursorLink, sourcePath);
+      if (resolved) {
         await this.editor.openNote(cursorLink);
       } else {
         const created = await openOrCreateZettel(cursorLink, mode, this.modeList, this.fs, this.editor, this.metadataCache);
