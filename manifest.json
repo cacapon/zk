@@ -1,7 +1,7 @@
 {
   "id": "zk",
   "name": "Zk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.4.0",
   "description": "CLI-oriented Zettelkasten for Obsidian",
   "author": "Cacapon Project",
