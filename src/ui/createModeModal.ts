@@ -57,7 +57,7 @@ export class CreateModeModal extends Modal {
 
     new Setting(contentEl)
       .setName("モード名")
-      .setDesc("表示名（例: Core, Temp）")
+      .setDesc("表示名（例: Core, Temp）。大文字・小文字は同じものとして扱われます。")
       .addButton((btn) => {
         btn.setTooltip("アイコンを選択").onClick(() => {
           new IconPickerModal(this.app, (iconId) => {

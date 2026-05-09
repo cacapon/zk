@@ -4,7 +4,7 @@ export class ModeList {
   private modes: Mode[] = [];
 
   addMode(mode: Mode): boolean {
-    if (this.modes.some((m) => m.name === mode.name)) {
+    if (this.modes.some((m) => m.name.toLowerCase() === mode.name.toLowerCase())) {
       return false;
     }
     this.modes.push(mode);
