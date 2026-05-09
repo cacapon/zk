@@ -8,7 +8,7 @@ export async function renameMode(
   modeList: ModeList,
   fs: FileSystem
 ): Promise<boolean> {
-  if (modeList.getModes().some((m) => m.name === newName)) return false;
+  if (mode.name !== newName && modeList.getModes().some((m) => m.name.toLowerCase() === newName.toLowerCase())) return false;
 
   const newDirPath = mode.dirPath.replace(/[^/]+$/, newName);
   const newTempPath = mode.tempPath.replace(/[^/]+(?=\.md$)/, newName);

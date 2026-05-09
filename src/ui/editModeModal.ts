@@ -20,6 +20,7 @@ export class EditModeModal extends Modal {
     app: App,
     private mode: Mode,
     private templateFolderPath: string | null,
+    private existingNames: string[],
     private onSubmit: (input: EditModeInput) => void
   ) {
     super(app);
@@ -37,9 +38,18 @@ export class EditModeModal extends Modal {
     errorEl.style.color = "var(--text-error)";
     errorEl.style.display = "none";
 
+    const isDuplicate = (name: string) =>
+      name !== this.mode.name &&
+      this.existingNames.some((n) => n.toLowerCase() === name.toLowerCase());
+
     const submit = () => {
       if (!this.name) {
         errorEl.setText("モード名を入力してください");
+        errorEl.style.display = "";
+        return;
+      }
+      if (isDuplicate(this.name)) {
+        errorEl.setText(`「${this.name}」は既に存在します。※モード名の大文字・小文字は区別されません`);
         errorEl.style.display = "";
         return;
       }
@@ -62,7 +72,15 @@ export class EditModeModal extends Modal {
         });
       })
       .addText((t) => {
-        t.setValue(this.mode.name).onChange((v) => { this.name = v.trim(); });
+        t.setValue(this.mode.name).onChange((v) => {
+          this.name = v.trim();
+          if (isDuplicate(this.name)) {
+            errorEl.setText(`「${this.name}」は既に存在します。※モード名の大文字・小文字は区別されません`);
+            errorEl.style.display = "";
+          } else {
+            errorEl.style.display = "none";
+          }
+        });
         t.inputEl.addEventListener("keydown", (e) => {
           if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); submit(); }
         });

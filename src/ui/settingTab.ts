@@ -66,7 +66,7 @@ export class ZkSettingTab extends PluginSettingTab {
       setting.addButton((btn) => {
         setIcon(btn.buttonEl, "settings");
         btn.setTooltip("編集").onClick(() => {
-          new EditModeModal(this.app, mode, templateFolder, async (input) => {
+          new EditModeModal(this.app, mode, templateFolder, this.plugin.getModes().map((m) => m.name), async (input) => {
             if (input.name !== mode.name) {
               await this.plugin.renameModeConfig(mode.name, input.name);
             }
