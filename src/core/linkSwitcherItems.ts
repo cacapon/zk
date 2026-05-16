@@ -14,24 +14,19 @@ export function getLinkSwitcherItems(
   const forward = metadataCache.getForwardLinks(filePath);
   const backlinks = metadataCache.getBacklinks(filePath);
 
-  const forwardSet = new Set(forward);
-  const backlinkSet = new Set(backlinks);
-  const seen = new Set([filePath, ...forward, ...backlinks]);
+  const result: LinkSwitcherItem[] = [];
+  const seen = new Set<string>([filePath.toLowerCase()]);
 
-  const twoStepSet = new Set<string>();
+  const addIfNew = (p: string, type: LinkType) => {
+    const key = p.toLowerCase();
+    if (!seen.has(key)) { result.push({ path: p, type }); seen.add(key); }
+  };
+
+  for (const p of forward) addIfNew(p, "forward");
+  for (const p of backlinks) addIfNew(p, "backlink");
   for (const f of forward) {
-    for (const ff of metadataCache.getForwardLinks(f)) {
-      if (!seen.has(ff)) twoStepSet.add(ff);
-    }
+    for (const ff of metadataCache.getForwardLinks(f)) addIfNew(ff, "2step");
   }
 
-  return [
-    ...forward.map((p) => ({ path: p, type: "forward" as const })),
-    ...backlinks
-      .filter((p) => !forwardSet.has(p))
-      .map((p) => ({ path: p, type: "backlink" as const })),
-    ...[...twoStepSet]
-      .filter((p) => !forwardSet.has(p) && !backlinkSet.has(p))
-      .map((p) => ({ path: p, type: "2step" as const })),
-  ];
+  return result;
 }
